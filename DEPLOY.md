@@ -65,9 +65,9 @@ docker-compose logs -f
 
 ### 4. Verificação
 
-- Frontend: http://localhost
-- Backend API: http://localhost:3001
-- Health Check Backend: http://localhost:3001/health
+- Frontend: https://app.fluxvision.cloud
+- Backend API: https://api.fluxvision.cloud:3001
+- Health Check Backend: https://api.fluxvision.cloud:3001/health
 
 ## 🌐 Deploy em Produção com Easypanel
 
@@ -101,10 +101,10 @@ Configure as seguintes variáveis no painel:
 - `DATABASE_URL`: postgresql://gestasaas:sua_senha_segura@database:5432/gestasaas_db
 - `SECRET_KEY`: sua_chave_secreta_muito_segura
 - `ENVIRONMENT`: production
-- `CORS_ORIGINS`: https://seu-dominio.com
+- `CORS_ORIGINS`: https://app.fluxvision.cloud,https://api.fluxvision.cloud
 
 **Frontend:**
-- `REACT_APP_API_URL`: /api
+- `REACT_APP_API_URL`: https://api.fluxvision.cloud/api
 - `REACT_APP_ENVIRONMENT`: production
 
 ### 4. Deploy

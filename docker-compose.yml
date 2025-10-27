@@ -32,11 +32,16 @@ services:
       dockerfile: Dockerfile
     container_name: gestasaas_backend
     environment:
-      - DATABASE_URL=postgresql://postgres:2084b5fb1f7fd997a2b0@aplicacao_gesta_db:5432/gestaSaaS
-      - SECRET_KEY=your-secret-key-here-change-in-production
+      - DATABASE_URL=postgresql://gestasaas:sua_senha_segura@aplicacao_gesta_db:5432/gestasaas_db
+      - SECRET_KEY=sua_chave_secreta_muito_segura_de_producao
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
       - ENVIRONMENT=production
+      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=3001
+      - CORS_ORIGINS=https://app.fluxvision.cloud,https://api.fluxvision.cloud
+      - LOG_LEVEL=info
     ports:
       - "3001:3001"
     depends_on:
@@ -60,8 +65,10 @@ services:
       dockerfile: Dockerfile
     container_name: gestasaas_frontend
     environment:
-      - REACT_APP_API_URL=http://app.fluxvision.cloud
+      - REACT_APP_API_URL=https://api.fluxvision.cloud/api
       - REACT_APP_ENVIRONMENT=production
+      - REACT_APP_NAME=gestaSaaS
+      - REACT_APP_VERSION=1.0.0
     ports:
       - "80:80"
     depends_on:
@@ -70,7 +77,7 @@ services:
       - gestasaas_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://app.fluxvision.cloud"]
       interval: 30s
       timeout: 10s
       retries: 3
