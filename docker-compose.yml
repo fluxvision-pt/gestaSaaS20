@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  aplicacao_gesta_db:
+    image: postgres:15-alpine
+    container_name: aplicacao_gesta_db
+    environment:
+      POSTGRES_DB: gestaSaaS
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2084b5fb1f7fd997a2b0
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database:/backup
+    ports:
+      - "5432:5432"
+    networks:
+      - gestasaas_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gestaSaaS"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gestasaas_backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:2084b5fb1f7fd997a2b0@aplicacao_gesta_db:5432/gestaSaaS
+      - SECRET_KEY=your-secret-key-here-change-in-production
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - ENVIRONMENT=production
+    ports:
+      - "3001:3001"
+    depends_on:
+      aplicacao_gesta_db:
+        condition: service_healthy
+    networks:
+      - gestasaas_network
+    restart: unless-stopped
+    volumes:
+      - ./backend/logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://app.fluxvision.cloud/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gestasaas_frontend
+    environment:
+      - REACT_APP_API_URL=http://app.fluxvision.cloud
+      - REACT_APP_ENVIRONMENT=production
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - gestasaas_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  gestasaas_network:
+    driver: bridge
