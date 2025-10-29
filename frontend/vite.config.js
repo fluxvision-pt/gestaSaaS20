@@ -7,7 +7,7 @@ export default defineConfig({
     include: "**/*.{jsx,js}"
   })],
   server: {
-    port: 3000,
+    port: 3001,
     host: true,
     middlewareMode: false,
     fs: {
@@ -30,7 +30,7 @@ export default defineConfig({
     }
   },
   preview: {
-    port: 3000,
+    port: 3001,
     host: true
   }
 })
