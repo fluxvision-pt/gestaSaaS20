@@ -36,7 +36,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 RUN chown -R nginx:nginx /usr/share/nginx/html
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/index.html || exit 1
+  CMD curl -f https://localhost/index.html || exit 1
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
