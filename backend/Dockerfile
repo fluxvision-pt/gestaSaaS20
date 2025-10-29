@@ -21,7 +21,7 @@ EXPOSE 3001
 
 # Healthcheck: sempre localhost interno do container
 HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
-  CMD curl -f https://localhost:3001/health || exit 1
+  CMD curl -f https://api.fluxvision.cloud/health || exit 1
 
 # Start
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3001", "--workers", "1", "--loop", "asyncio"]
