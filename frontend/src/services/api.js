@@ -15,7 +15,7 @@ const API_BASE_URL = (() => {
   }
 
   // 3️⃣ Fallback local
-  return 'http://localhost:3001/api';
+  return 'https://api.fluxvision.cloud/api';
 })();
 
 
