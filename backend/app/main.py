@@ -65,7 +65,7 @@ async def shutdown_event_handler():
 # ==============================
 cors_origins_str = os.getenv(
     "CORS_ORIGINS",
-    "https://app.fluxvision.cloud,https://api.fluxvision.cloud,https://fluxvision.cloud,https://localhost,https://127.0.0.1"
+    "https://app.fluxvision.cloud,https://api.fluxvision.cloud"
 )
 cors_origins = [o.strip() for o in cors_origins_str.split(",") if o.strip()]
 
