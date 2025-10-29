@@ -20,7 +20,7 @@ services:
       - frontend_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "https://api.fluxvision.cloud/health"]
+      test: ["CMD", "curl", "-f", "http:localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
