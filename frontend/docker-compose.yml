@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Frontend Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=https://api.fluxvision.cloud/api
+        - VITE_ENVIRONMENT=production
+        - VITE_APP_NAME=gestaSaaS
+        - VITE_APP_VERSION=1.0.0
+        - VITE_ENABLE_ANALYTICS=true
+        - VITE_ENABLE_DEBUG=false
+    container_name: gestasaas_frontend
+    ports:
+      - "80:80"
+    networks:
+      - frontend_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    environment:
+      - NODE_ENV=production
+
+networks:
+  frontend_network:
+    driver: bridge
