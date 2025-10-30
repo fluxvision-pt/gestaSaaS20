@@ -3,19 +3,14 @@ import toast from 'react-hot-toast';
 
 // Detectar ambiente e forçar HTTPS corretamente
 const API_BASE_URL = (() => {
-  // 1️⃣ Prioriza variável do ambiente
   const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl) return envUrl.trim().replace(/^http:\/\//i, 'https://');
+  if (envUrl) return envUrl.trim().replace(/^http:/, 'https:');
 
-  // 2️⃣ Detecta domínio e monta URL segura
-  const origin = window.location.origin;
-  if (origin.includes('app.')) {
-    // substitui 'app.' por 'api.' e força protocolo HTTPS
-    return origin.replace('app.', 'api.').replace(/^http:\/\//i, 'https://') + '/api';
+  if (window.location.hostname.includes('app.fluxvision.cloud')) {
+    return 'https://api.fluxvision.cloud/api';  // COM /api
   }
 
-  // 3️⃣ Fallback local
-  return 'https://api.fluxvision.cloud/api';
+  return 'http://localhost:3001';
 })();
 
 
@@ -50,15 +45,15 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Só faz logout automático se for erro 401 e não for na rota /auth/me
-    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/me')) {
+    // Só faz logout automático se for erro 401 e não for na rota /api/me
+    if (error.response?.status === 401 && !error.config?.url?.includes('/api/me')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
     
     // Não mostra toast para erros de autenticação na verificação inicial
-    if (!(error.response?.status === 401 && error.config?.url?.includes('/auth/me'))) {
+    if (!(error.response?.status === 401 && error.config?.url?.includes('/api/me'))) {
       const message = error.response?.data?.detail || 'Erro interno do servidor';
       toast.error(message);
     }
@@ -70,27 +65,27 @@ api.interceptors.response.use(
 // Serviços de autenticação
 export const authService = {
   login: async (email, senha) => {
-    const response = await api.post('/auth/login', { email, senha });
+    const response = await api.post('/api/login', { email, senha });
     return response.data;
   },
   
   register: async (userData) => {
-    const response = await api.post('/auth/register', userData);
+    const response = await api.post('/api/register', userData);
     return response.data;
   },
   
   getMe: async () => {
-    const response = await api.get('/auth/me');
+    const response = await api.get('/api/me');
     return response.data;
   },
   
   forgotPassword: async (email) => {
-    const response = await api.post('/auth/forgot-password', { email });
+    const response = await api.post('/api/forgot-password', { email });
     return response.data;
   },
   
   resetPassword: async (token, nova_senha) => {
-    const response = await api.post('/auth/reset-password', { token, nova_senha });
+    const response = await api.post('/api/reset-password', { token, nova_senha });
     return response.data;
   }
 };
@@ -235,13 +230,13 @@ export const configService = {
   
   // Alterar senha
   alterarSenha: async (senhaData) => {
-    const response = await api.put('/auth/alterar-senha', senhaData);
+    const response = await api.put('/api/alterar-senha', senhaData);
     return response.data;
   },
   
   // Excluir conta
   excluirConta: async () => {
-    const response = await api.delete('/auth/excluir-conta');
+    const response = await api.delete('/api/excluir-conta');
     return response.data;
   },
   
@@ -253,7 +248,7 @@ export const configService = {
   
   // Atualizar perfil do usuário
   atualizarPerfil: async (dadosPerfil) => {
-    const response = await api.put('/auth/perfil', dadosPerfil);
+    const response = await api.put('/api/perfil', dadosPerfil);
     return response.data;
   }
 };

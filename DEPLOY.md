@@ -43,7 +43,7 @@ ENVIRONMENT=production
 DEBUG=false
 HOST=0.0.0.0
 PORT=3001
-CORS_ORIGINS=https://localhost,https://localhost:443
+CORS_ORIGINS=http://localhost,http://localhost:80
 LOG_LEVEL=info
 ```
 
