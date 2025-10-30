@@ -2,16 +2,18 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 // Detectar ambiente e forçar HTTPS corretamente
-const API_BASE_URL = (() => {
-  const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl) return envUrl.trim().replace(/^http:/, 'https:');
-
+const getBaseURL = () => {
   if (window.location.hostname.includes('app.fluxvision.cloud')) {
     return 'https://api.fluxvision.cloud';  // SEM /api - será adicionado pelo backend
   }
+  // Para desenvolvimento local
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3001';
+  }
+  return import.meta.env.VITE_API_URL || 'http://localhost:3001';
+};
 
-  return 'http://localhost:3001';
-})();
+const API_BASE_URL = getBaseURL();
 
 
 

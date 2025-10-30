@@ -13,13 +13,18 @@ from pathlib import Path
 # Inicialização e Logging
 # ==============================
 
-# 🔧 Carrega o arquivo .env.production de forma absoluta e segura
-env_path = Path(__file__).resolve().parent.parent / ".env.production"
-if env_path.exists():
-    load_dotenv(dotenv_path=env_path)
-    print(f"🔧 ENV carregado com sucesso: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')}")
+# 🔧 Carrega primeiro o arquivo .env local se existir, depois o .env.production
+env_local_path = Path(__file__).resolve().parent.parent / ".env"
+env_production_path = Path(__file__).resolve().parent.parent / ".env.production"
+
+if env_local_path.exists():
+    load_dotenv(dotenv_path=env_local_path)
+    print(f"🔧 ENV local carregado: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')} | Ambiente: {os.getenv('ENVIRONMENT')}")
+elif env_production_path.exists():
+    load_dotenv(dotenv_path=env_production_path)
+    print(f"🔧 ENV production carregado: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')} | Ambiente: {os.getenv('ENVIRONMENT')}")
 else:
-    print(f"⚠️  Arquivo .env.production não encontrado em: {env_path}")
+    print(f"⚠️  Nenhum arquivo .env encontrado")
 
 # Configuração básica de logs
 logging.basicConfig(level=logging.INFO)
