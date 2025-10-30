@@ -205,14 +205,14 @@ async def get_resumo_plataformas(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Usar LEFT JOIN para incluir todas as plataformas do usuário, mesmo sem transações
+    # Buscar apenas plataformas que têm transações associadas
     plataformas_query = db.query(
         Plataforma.nome,
         Plataforma.cor,
-        func.coalesce(func.sum(Transacao.valor), 0).label('total_receita'),
-        func.coalesce(func.sum(Transacao.km_percorridos), 0).label('total_km'),
+        func.sum(Transacao.valor).label('total_receita'),
+        func.sum(Transacao.km_percorridos).label('total_km'),
         func.count(Transacao.id).label('total_corridas')
-    ).outerjoin(
+    ).join(
         Transacao, 
         (Plataforma.id == Transacao.plataforma_id) & 
         (Transacao.usuario_id == current_user.id) & 
