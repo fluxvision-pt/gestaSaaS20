@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17
     container_name: gestasaas_postgres
     environment:
       POSTGRES_DB: app_gesta_db
@@ -43,7 +43,7 @@ services:
       - DEBUG=false
       - HOST=0.0.0.0
       - PORT=3001
-      - CORS_ORIGINS=https://app.fluxvision.cloud,https://api.fluxvision.cloud,https://fluxvision.cloud
+      - CORS_ORIGINS=https://app.fluxvision.cloud,https://api.fluxvision.cloud
       - LOG_LEVEL=info
     ports:
       - "3001:3001"
