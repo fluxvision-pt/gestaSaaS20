@@ -107,6 +107,14 @@ class CORSOptionsMiddleware(BaseHTTPMiddleware):
         origin = request.headers.get("Origin", "*")
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Vary"] = "Origin"
+        
+        # Headers de segurança para evitar Mixed Content
+        response.headers["Content-Security-Policy"] = "upgrade-insecure-requests"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        
         return response
 
 app.add_middleware(CORSOptionsMiddleware)
