@@ -75,7 +75,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: "https://api.fluxvision.cloud/api"
+        VITE_API_URL: "https://rotas.fluxvision.cloud/api"
         VITE_ENVIRONMENT: "production"
         VITE_APP_NAME: "gestaSaaS"
         VITE_APP_VERSION: "1.0.0"
@@ -90,7 +90,7 @@ services:
       - gestasaas_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "https://api.fluxvision.cloud/health"]
+      test: ["CMD", "curl", "-f", "https://rotas.fluxvision.cloud/health"]
       interval: 30s
       timeout: 10s
       retries: 3

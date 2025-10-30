@@ -66,8 +66,8 @@ docker-compose logs -f
 ### 4. Verificação
 
 - Frontend: https://app.fluxvision.cloud
-- Backend API: https://api.fluxvision.cloud:3001
-- Health Check Backend: https://api.fluxvision.cloud:3001/health
+- Backend API: https://rotas.fluxvision.cloud:3001
+- Health Check Backend: https://rotas.fluxvision.cloud:3001/health
 
 ## 🌐 Deploy em Produção com Easypanel
 

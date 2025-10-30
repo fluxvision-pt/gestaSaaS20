@@ -3,7 +3,7 @@ FROM node:22-alpine AS build
 WORKDIR /frontend
 
 # Args com HTTPS (evita Mixed Content)
-ARG VITE_API_URL=https://api.fluxvision.cloud/api
+ARG VITE_API_URL=https://rotas.fluxvision.cloud/api
 ARG VITE_ENVIRONMENT=production
 ARG VITE_APP_NAME=gestaSaaS
 ARG VITE_APP_VERSION=1.0.0

@@ -2,7 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 // Usar sempre a URL de produção
-const API_BASE_URL = 'https://api.fluxvision.cloud';
+const API_BASE_URL = 'https://rotas.fluxvision.cloud/api';
 
 
 
