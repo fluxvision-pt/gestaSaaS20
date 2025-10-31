@@ -177,7 +177,7 @@ async def deletar_plataforma(
     if not plataforma:
         raise HTTPException(status_code=404, detail="Plataforma não encontrada")
     
-    plataforma.ativo = False
+    db.delete(plataforma)
     db.commit()
     
     return {"message": "Plataforma deletada com sucesso"}
@@ -283,7 +283,7 @@ async def deletar_meio_pagamento(
     if not meio:
         raise HTTPException(status_code=404, detail="Meio de pagamento não encontrado")
     
-    meio.ativo = False
+    db.delete(meio)
     db.commit()
     
     return {"message": "Meio de pagamento deletado com sucesso"}
