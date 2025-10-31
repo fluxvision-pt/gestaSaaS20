@@ -37,6 +37,17 @@ async def listar_categorias(
     ).order_by(Categoria.tipo, Categoria.nome).all()
     return categorias
 
+@router.get("/categorias/ativas", response_model=List[CategoriaResponse])
+async def listar_categorias_ativas(
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    categorias = db.query(Categoria).filter(
+        Categoria.usuario_id == current_user.id,
+        Categoria.ativo == True
+    ).order_by(Categoria.tipo, Categoria.nome).all()
+    return categorias
+
 @router.post("/categorias", response_model=CategoriaResponse)
 async def criar_categoria(
     categoria_data: CategoriaCreate,
@@ -121,6 +132,17 @@ async def listar_plataformas(
     ).order_by(Plataforma.tipo, Plataforma.nome).all()
     return plataformas
 
+@router.get("/plataformas/ativas", response_model=List[PlataformaResponse])
+async def listar_plataformas_ativas(
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    plataformas = db.query(Plataforma).filter(
+        Plataforma.usuario_id == current_user.id,
+        Plataforma.ativo == True
+    ).order_by(Plataforma.tipo, Plataforma.nome).all()
+    return plataformas
+
 @router.post("/plataformas", response_model=PlataformaResponse)
 async def criar_plataforma(
     plataforma_data: PlataformaCreate,
@@ -188,6 +210,17 @@ async def listar_meios_pagamento(
 ):
     meios = db.query(MeioPagamento).filter(
         MeioPagamento.usuario_id == current_user.id
+    ).order_by(MeioPagamento.nome).all()
+    return meios
+
+@router.get("/meios-pagamento/ativos", response_model=List[MeioPagamentoResponse])
+async def listar_meios_pagamento_ativos(
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    meios = db.query(MeioPagamento).filter(
+        MeioPagamento.usuario_id == current_user.id,
+        MeioPagamento.ativo == True
     ).order_by(MeioPagamento.nome).all()
     return meios
 

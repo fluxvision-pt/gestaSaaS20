@@ -9,6 +9,10 @@ import { useCurrencyFormatter } from '../utils/currency';
 
 const Transacoes = () => {
   const [transacoes, setTransacoes] = useState([]);
+  // Estados para filtros (todos os itens)
+  const [categoriasFiltro, setCategoriasFiltro] = useState([]);
+  const [plataformasFiltro, setPlataformasFiltro] = useState([]);
+  // Estados para formulários (apenas ativos)
   const [categorias, setCategorias] = useState([]);
   const [plataformas, setPlataformas] = useState([]);
   const [meiosPagamento, setMeiosPagamento] = useState([]);
@@ -42,17 +46,30 @@ const Transacoes = () => {
   const carregarDados = async () => {
     try {
       setLoading(true);
-      const [transacoesData, categoriasData, plataformasData, meiosPagamentoData] = await Promise.all([
+      const [
+        transacoesData, 
+        categoriasAtivasData, 
+        plataformasAtivasData, 
+        meiosPagamentoAtivasData,
+        categoriasTodasData,
+        plataformasTodasData
+      ] = await Promise.all([
         transacaoService.listar(),
+        configuracaoService.listarCategoriasAtivas(),
+        configuracaoService.listarPlataformasAtivas(),
+        configuracaoService.listarMeiosPagamentoAtivos(),
         configuracaoService.listarCategorias(),
-        configuracaoService.listarPlataformas(),
-        configuracaoService.listarMeiosPagamento()
+        configuracaoService.listarPlataformas()
       ]);
       
       setTransacoes(transacoesData);
-      setCategorias(categoriasData);
-      setPlataformas(plataformasData);
-      setMeiosPagamento(meiosPagamentoData);
+      // Para formulários (apenas ativos)
+      setCategorias(categoriasAtivasData);
+      setPlataformas(plataformasAtivasData);
+      setMeiosPagamento(meiosPagamentoAtivasData);
+      // Para filtros (todos os itens)
+      setCategoriasFiltro(categoriasTodasData);
+      setPlataformasFiltro(plataformasTodasData);
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -194,9 +211,9 @@ const Transacoes = () => {
               className="input"
             >
               <option value="">Todas as categorias</option>
-              {categorias.map(categoria => (
+              {categoriasFiltro.map(categoria => (
                 <option key={categoria.id} value={categoria.id}>
-                  {categoria.nome}
+                  {categoria.nome} {!categoria.ativo && '(Inativo)'}
                 </option>
               ))}
             </select>
@@ -207,9 +224,9 @@ const Transacoes = () => {
               className="input"
             >
               <option value="">Todas as plataformas</option>
-              {plataformas.map(plataforma => (
+              {plataformasFiltro.map(plataforma => (
                 <option key={plataforma.id} value={plataforma.id}>
-                  {plataforma.nome}
+                  {plataforma.nome} {!plataforma.ativo && '(Inativo)'}
                 </option>
               ))}
             </select>

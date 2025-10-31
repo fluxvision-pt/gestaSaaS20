@@ -151,6 +151,11 @@ export const configService = {
     return response.data;
   },
   
+  listarCategoriasAtivas: async () => {
+    const response = await api.get('/configuracoes/categorias/ativas');
+    return response.data;
+  },
+  
   criarCategoria: async (categoria) => {
     const response = await api.post('/configuracoes/categorias', categoria);
     return response.data;
@@ -172,6 +177,11 @@ export const configService = {
     return response.data;
   },
   
+  listarPlataformasAtivas: async () => {
+    const response = await api.get('/configuracoes/plataformas/ativas');
+    return response.data;
+  },
+  
   criarPlataforma: async (plataforma) => {
     const response = await api.post('/configuracoes/plataformas', plataforma);
     return response.data;
@@ -190,6 +200,11 @@ export const configService = {
   // Meios de pagamento
   listarMeiosPagamento: async () => {
     const response = await api.get('/configuracoes/meios-pagamento');
+    return response.data;
+  },
+  
+  listarMeiosPagamentoAtivos: async () => {
+    const response = await api.get('/configuracoes/meios-pagamento/ativos');
     return response.data;
   },
   
