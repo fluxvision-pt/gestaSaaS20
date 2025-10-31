@@ -16,18 +16,12 @@ from pathlib import Path
 # ==============================
 # Carregamento de variáveis de ambiente
 # ==============================
-# Primeiro tenta carregar .env local (desenvolvimento)
-env_local_path = Path(__file__).resolve().parent.parent / ".env"
-env_production_path = Path(__file__).resolve().parent.parent / ".env.production"
-
-if env_local_path.exists():
-    load_dotenv(dotenv_path=env_local_path)
-    print(f"🔧 ENV local carregado: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')} | Environment: {os.getenv('ENVIRONMENT')}")
-elif env_production_path.exists():
-    load_dotenv(dotenv_path=env_production_path)
-    print(f"🔧 ENV produção carregado: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')} | Environment: {os.getenv('ENVIRONMENT')}")
+env_path = Path(__file__).resolve().parent.parent / ".env.production"
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+    print(f"🔧 ENV carregado com sucesso: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')}")
 else:
-    print(f"⚠️  Nenhum arquivo .env encontrado")
+    print(f"⚠️  Arquivo .env.production não encontrado em: {env_path}")
 
 # Configuração básica de logs
 logging.basicConfig(level=logging.INFO)
@@ -98,23 +92,34 @@ app.add_middleware(
 # ==============================
 class CORSOptionsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        origin = request.headers.get("Origin")
+        
+        # Verifica se a origem está nas origens permitidas
+        allowed_origin = None
+        if origin:
+            if environment == "development" or origin in cors_origins:
+                allowed_origin = origin
+        
         # Trata manualmente requisições OPTIONS (pré-flight)
         if request.method == "OPTIONS":
             response = Response()
-            origin = request.headers.get("Origin", "*")
             req_headers = request.headers.get("Access-Control-Request-Headers", "*")
 
-            response.headers["Access-Control-Allow-Origin"] = origin
+            if allowed_origin:
+                response.headers["Access-Control-Allow-Origin"] = allowed_origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
             response.headers["Access-Control-Allow-Headers"] = req_headers
-            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Vary"] = "Origin"
             return response
 
         # Adiciona o cabeçalho em todas as respostas
         response = await call_next(request)
-        origin = request.headers.get("Origin", "*")
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Vary"] = "Origin"
+        
+        if allowed_origin:
+            response.headers["Access-Control-Allow-Origin"] = allowed_origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Vary"] = "Origin"
         
         # Headers de segurança para evitar Mixed Content
         response.headers["Content-Security-Policy"] = "upgrade-insecure-requests"

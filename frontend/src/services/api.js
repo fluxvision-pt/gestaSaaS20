@@ -1,8 +1,8 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// Usar variável de ambiente ou fallback para produção
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://rotas.fluxvision.cloud/api';
+// URL da API de produção
+const API_BASE_URL = 'https://rotas.fluxvision.cloud/api';
 
 
 
