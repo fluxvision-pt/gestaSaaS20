@@ -99,6 +99,17 @@ const Transacoes = () => {
         transacaoData.meio_pagamento_id = null;
       }
       
+      // Tratar campos numéricos vazios - converter strings vazias para null
+      if (transacaoData.km_percorridos === '' || transacaoData.km_percorridos === undefined) {
+        transacaoData.km_percorridos = null;
+      }
+      if (transacaoData.litros_combustivel === '' || transacaoData.litros_combustivel === undefined) {
+        transacaoData.litros_combustivel = null;
+      }
+      if (transacaoData.preco_combustivel === '' || transacaoData.preco_combustivel === undefined) {
+        transacaoData.preco_combustivel = null;
+      }
+      
       if (editingTransaction) {
         await transacaoService.atualizar(editingTransaction.id, transacaoData);
         toast.success('Transação atualizada com sucesso!');
