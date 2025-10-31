@@ -87,6 +87,7 @@ class PlataformaCreate(BaseModel):
     tipo: str  # 'delivery', 'driver', 'outro'
     cor: Optional[str] = '#28a745'
     comissao_percentual: Optional[Decimal] = 0
+    ativo: Optional[bool] = True
 
 class PlataformaResponse(BaseModel):
     id: uuid.UUID
@@ -103,6 +104,7 @@ class PlataformaResponse(BaseModel):
 class MeioPagamentoCreate(BaseModel):
     nome: str
     tipo: Optional[str] = None
+    ativo: Optional[bool] = True
 
 class MeioPagamentoResponse(BaseModel):
     id: uuid.UUID

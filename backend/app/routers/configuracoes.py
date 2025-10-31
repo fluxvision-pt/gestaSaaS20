@@ -33,8 +33,7 @@ async def listar_categorias(
     db: Session = Depends(get_db)
 ):
     categorias = db.query(Categoria).filter(
-        Categoria.usuario_id == current_user.id,
-        Categoria.ativo == True
+        Categoria.usuario_id == current_user.id
     ).order_by(Categoria.tipo, Categoria.nome).all()
     return categorias
 
@@ -118,8 +117,7 @@ async def listar_plataformas(
     db: Session = Depends(get_db)
 ):
     plataformas = db.query(Plataforma).filter(
-        Plataforma.usuario_id == current_user.id,
-        Plataforma.ativo == True
+        Plataforma.usuario_id == current_user.id
     ).order_by(Plataforma.tipo, Plataforma.nome).all()
     return plataformas
 
@@ -189,9 +187,8 @@ async def listar_meios_pagamento(
     db: Session = Depends(get_db)
 ):
     meios = db.query(MeioPagamento).filter(
-        MeioPagamento.usuario_id == current_user.id,
-        MeioPagamento.ativo == True
-    ).order_by(MeioPagamento.tipo, MeioPagamento.nome).all()
+        MeioPagamento.usuario_id == current_user.id
+    ).order_by(MeioPagamento.nome).all()
     return meios
 
 @router.post("/meios-pagamento", response_model=MeioPagamentoResponse)
