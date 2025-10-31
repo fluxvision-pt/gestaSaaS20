@@ -79,11 +79,31 @@ const Transacoes = () => {
 
   const onSubmit = async (data) => {
     try {
+      // Transformar o campo 'data' em 'data_transacao' para compatibilidade com a API
+      const transacaoData = {
+        ...data,
+        data_transacao: data.data,
+      };
+      
+      // Remover o campo 'data' original
+      delete transacaoData.data;
+      
+      // Tratar campos UUID vazios - converter strings vazias para null
+      if (transacaoData.categoria_id === '') {
+        transacaoData.categoria_id = null;
+      }
+      if (transacaoData.plataforma_id === '') {
+        transacaoData.plataforma_id = null;
+      }
+      if (transacaoData.meio_pagamento_id === '') {
+        transacaoData.meio_pagamento_id = null;
+      }
+      
       if (editingTransaction) {
-        await transacaoService.atualizar(editingTransaction.id, data);
+        await transacaoService.atualizar(editingTransaction.id, transacaoData);
         toast.success('Transação atualizada com sucesso!');
       } else {
-        await transacaoService.criar(data);
+        await transacaoService.criar(transacaoData);
         toast.success('Transação criada com sucesso!');
       }
       
@@ -92,6 +112,7 @@ const Transacoes = () => {
       reset();
       carregarDados();
     } catch (error) {
+      console.error('Erro detalhado:', error);
       toast.error('Erro ao salvar transação');
     }
   };
@@ -102,7 +123,7 @@ const Transacoes = () => {
     // Formatar a data para o formato esperado pelo input date (YYYY-MM-DD)
     const transacaoFormatada = {
       ...transacao,
-      data: transacao.data ? new Date(transacao.data).toISOString().split('T')[0] : ''
+      data: transacao.data_transacao ? new Date(transacao.data_transacao).toISOString().split('T')[0] : ''
     };
     
     reset(transacaoFormatada);
