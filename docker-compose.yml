@@ -48,7 +48,7 @@ services:
       - DEBUG=false
       - HOST=0.0.0.0
       - PORT=3001
-      - CORS_ORIGINS=https://app.fluxvision.cloud,https://api.fluxvision.cloud
+      - CORS_ORIGINS=https://app.fluxvision.cloud,https://rotas.fluxvision.cloud
       - LOG_LEVEL=info
     ports:
       - "3001:3001"
@@ -61,7 +61,7 @@ services:
     volumes:
       - ./backend/logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "https://api.fluxvision.cloud/health"]
+      test: ["CMD", "curl", "-f", "https://rotas.fluxvision.cloud/health"]
       interval: 60s
       timeout: 10s
       retries: 3
