@@ -85,7 +85,10 @@ const Transacoes = () => {
     // Formatar a data para o formato esperado pelo input date (YYYY-MM-DD)
     const transacaoFormatada = {
       ...transacao,
-      data: transacao.data ? new Date(transacao.data).toISOString().split('T')[0] : ''
+      data: transacao.data ? new Date(transacao.data).toISOString().split('T')[0] : '',
+      categoria_id: transacao.categoria_id || '',
+      plataforma_id: transacao.plataforma_id || '',
+      meio_pagamento_id: transacao.meio_pagamento_id || ''
     };
     
     reset(transacaoFormatada);
@@ -244,6 +247,9 @@ const Transacoes = () => {
                     Data
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Data Cadastro
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tipo
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -268,6 +274,9 @@ const Transacoes = () => {
                   <tr key={transacao.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {transacao.data ? format(new Date(transacao.data), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transacao.created_at ? format(new Date(transacao.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
