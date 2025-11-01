@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import base64
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -47,6 +50,47 @@ security = HTTPBearer()
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica se a senha informada corresponde ao hash armazenado."""
     return pwd_context.verify(plain_password, hashed_password)
+
+def verify_old_password(plain_password, old_hash):
+    """Verifica senha no formato antigo ($$$rounds=535000$...)."""
+    try:
+        # Extrai os componentes do hash antigo
+        if not old_hash.startswith("$$$rounds="):
+            return False
+        
+        parts = old_hash.split("$")
+        if len(parts) < 4:
+            return False
+        
+        rounds_str = parts[2].replace("rounds=", "")
+        rounds = int(rounds_str)
+        salt_and_hash = parts[3]
+        
+        # Separa salt e hash
+        # O formato parece ser: salt + hash_base64
+        # Vamos tentar diferentes abordagens baseadas no padrão observado
+        
+        # Primeira tentativa: PBKDF2 com SHA-256
+        salt_bytes = salt_and_hash[:16].encode('utf-8')  # Primeiros 16 chars como salt
+        expected_hash = salt_and_hash[16:]  # Resto como hash
+        
+        # Gera hash usando PBKDF2
+        derived_key = hashlib.pbkdf2_hmac('sha256', plain_password.encode('utf-8'), salt_bytes, rounds)
+        computed_hash = base64.b64encode(derived_key).decode('utf-8')
+        
+        # Remove padding do base64 se necessário
+        computed_hash = computed_hash.rstrip('=')
+        expected_hash = expected_hash.rstrip('=')
+        
+        return computed_hash == expected_hash
+        
+    except Exception as e:
+        print(f"Erro ao verificar senha antiga: {e}")
+        return False
+
+def is_old_password_format(password_hash):
+    """Verifica se o hash está no formato antigo."""
+    return password_hash and password_hash.startswith("$$$rounds=")
 
 def get_password_hash(password: str) -> str:
     """Gera o hash da senha para armazenamento seguro."""
@@ -105,13 +149,29 @@ def get_current_user(
     return user
 
 def authenticate_user(db: Session, email: str, password: str):
-    """Valida as credenciais de login."""
+    """Valida as credenciais de login com migração automática de senhas."""
     user = db.query(Usuario).filter(Usuario.email == email).first()
     if not user:
         return False
     if not user.senha_hash:
         print(f"❌ Usuário {email} não possui senha_hash definida")
         return False
+    
+    # Verifica se é formato antigo e tenta migrar
+    if is_old_password_format(user.senha_hash):
+        print(f"🔄 Detectado formato antigo de senha para {email}, tentando migração...")
+        if verify_old_password(password, user.senha_hash):
+            # Senha correta no formato antigo, migra para bcrypt
+            new_hash = get_password_hash(password)
+            user.senha_hash = new_hash
+            db.commit()
+            print(f"✅ Senha migrada com sucesso para {email}")
+            return user
+        else:
+            print(f"❌ Senha incorreta no formato antigo para {email}")
+            return False
+    
+    # Verifica senha no formato bcrypt
     if not verify_password(password, user.senha_hash):
         return False
     return user
