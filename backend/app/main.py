@@ -90,49 +90,20 @@ app.add_middleware(
 )
 
 # ==============================
-# Middleware customizado para CORS dinâmico
+# Headers de segurança
 # ==============================
-class CORSOptionsMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        origin = request.headers.get("Origin")
-        
-        # Verifica se a origem está nas origens permitidas
-        allowed_origin = None
-        if origin:
-            if origin in cors_origins:
-                allowed_origin = origin
-        
-        # Trata manualmente requisições OPTIONS (pré-flight)
-        if request.method == "OPTIONS":
-            response = Response()
-            req_headers = request.headers.get("Access-Control-Request-Headers", "*")
-
-            if allowed_origin:
-                response.headers["Access-Control-Allow-Origin"] = allowed_origin
-                response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-            response.headers["Access-Control-Allow-Headers"] = req_headers
-            response.headers["Vary"] = "Origin"
-            return response
-
-        # Adiciona o cabeçalho em todas as respostas
-        response = await call_next(request)
-        
-        if allowed_origin:
-            response.headers["Access-Control-Allow-Origin"] = allowed_origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Vary"] = "Origin"
-        
-        # Headers de segurança para evitar Mixed Content
-        response.headers["Content-Security-Policy"] = "upgrade-insecure-requests"
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        
-        return response
-
-app.add_middleware(CORSOptionsMiddleware)
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    
+    # Headers de segurança para evitar Mixed Content
+    response.headers["Content-Security-Policy"] = "upgrade-insecure-requests"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    
+    return response
 
 # ==============================
 # Rotas da aplicação
