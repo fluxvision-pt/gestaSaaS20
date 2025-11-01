@@ -70,22 +70,12 @@ async def shutdown_event_handler():
 # Configuração de CORS
 # ==============================
 cors_origins_str = os.getenv(
-    "CORS_ORIGINS",
+    "CORS_ORIGINS", 
     "https://app.fluxvision.cloud,https://rotas.fluxvision.cloud"
 )
 cors_origins = [o.strip() for o in cors_origins_str.split(",") if o.strip()]
 
 environment = os.getenv("ENVIRONMENT", "production")
-if environment == "development":
-    cors_origins = ["*"]
-else:
-    # Adiciona localhost para desenvolvimento local mesmo em produção
-    cors_origins.extend([
-        "http://localhost:3000",
-        "http://localhost:3001", 
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001"
-    ])
 
 print(f"Environment: {environment}")
 print(f"CORS Origins: {cors_origins}")
@@ -109,7 +99,7 @@ class CORSOptionsMiddleware(BaseHTTPMiddleware):
         # Verifica se a origem está nas origens permitidas
         allowed_origin = None
         if origin:
-            if environment == "development" or origin in cors_origins:
+            if origin in cors_origins:
                 allowed_origin = origin
         
         # Trata manualmente requisições OPTIONS (pré-flight)
@@ -170,7 +160,7 @@ async def health_check():
             "status": "healthy",
             "service": "gestaSaaS API",
             "timestamp": int(time.time()),
-            "environment": os.getenv("ENVIRONMENT", "development"),
+            "environment": os.getenv("ENVIRONMENT", "production"),
             "version": "1.0.0"
         }
     except Exception as e:
