@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, extract
 from app.database import get_db
-from app.models import Usuario, Transacao, Categoria, Plataforma
+from app.models import Usuario, Transacao, Categoria, Plataforma, MeioPagamento
 from app.schemas import DashboardStats, GraficoData
 from app.auth import get_current_user
 from datetime import datetime, date
@@ -108,8 +108,12 @@ async def get_dashboard_stats(
         extract('year', Transacao.data_transacao) == ano_anterior
     ).scalar() or Decimal('0')
     
-    # Transações recentes (últimas 5)
-    transacoes_recentes = db.query(Transacao).filter(
+    # Transações recentes (últimas 5) com relacionamentos carregados
+    transacoes_recentes = db.query(Transacao).options(
+        joinedload(Transacao.categoria),
+        joinedload(Transacao.plataforma),
+        joinedload(Transacao.meio_pagamento)
+    ).filter(
         Transacao.usuario_id == current_user.id
     ).order_by(Transacao.created_at.desc()).limit(5).all()
     
