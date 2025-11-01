@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from app.routers import auth, dashboard, transacoes, configuracoes, password_migration
+from app.routers import auth, dashboard, transacoes, configuracoes
 import os
 import signal
 import asyncio
@@ -107,7 +107,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(transacoes.router, prefix="/api")
 app.include_router(configuracoes.router, prefix="/api")
-app.include_router(password_migration.router, prefix="/api")
+
 
 # ==============================
 # Rotas básicas

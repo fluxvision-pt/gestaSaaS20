@@ -1,6 +1,4 @@
-import hashlib
 import hmac
-import base64
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -51,100 +49,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica se a senha informada corresponde ao hash armazenado."""
     return pwd_context.verify(plain_password, hashed_password)
 
-def verify_old_password(plain_password, old_hash):
-    """Verifica senha no formato antigo ($$$rounds=535000$...)."""
-    try:
-        # Extrai os componentes do hash antigo
-        if not old_hash.startswith("$$$rounds="):
-            return False
-        
-        # Remove o prefixo $$$rounds= e extrai rounds e hash
-        hash_part = old_hash[10:]  # Remove "$$$rounds="
-        
-        # Encontra onde termina o número de rounds
-        dollar_pos = hash_part.find('$')
-        if dollar_pos == -1:
-            return False
-            
-        rounds_str = hash_part[:dollar_pos]
-        salt_and_hash = hash_part[dollar_pos + 1:]
-        
-        rounds = int(rounds_str)
-        
-        # Tenta diferentes abordagens para extrair salt e hash
-        approaches = [
-            # Abordagem 1: Primeiros 16 caracteres como salt
-            (16, 'utf-8'),
-            # Abordagem 2: Primeiros 8 caracteres como salt
-            (8, 'utf-8'),
-            # Abordagem 3: Primeiros 12 caracteres como salt
-            (12, 'utf-8'),
-            # Abordagem 4: Decodifica base64 primeiro
-            (None, 'base64'),
-        ]
-        
-        for salt_len, encoding in approaches:
-            try:
-                if encoding == 'base64':
-                    # Tenta decodificar o hash completo como base64
-                    try:
-                        decoded = base64.b64decode(salt_and_hash + '==')  # Adiciona padding
-                        if len(decoded) >= 16:
-                            salt_bytes = decoded[:8]  # Primeiros 8 bytes como salt
-                            expected_hash_bytes = decoded[8:]
-                        else:
-                            continue
-                    except:
-                        continue
-                else:
-                    # Usa caracteres como salt
-                    salt_str = salt_and_hash[:salt_len]
-                    expected_hash = salt_and_hash[salt_len:]
-                    salt_bytes = salt_str.encode(encoding)
-                
-                # Testa diferentes algoritmos de hash
-                algorithms = ['sha256', 'sha1', 'sha512', 'md5']
-                
-                for algo in algorithms:
-                    try:
-                        # Gera hash usando PBKDF2
-                        derived_key = hashlib.pbkdf2_hmac(algo, plain_password.encode('utf-8'), salt_bytes, rounds)
-                        
-                        if encoding == 'base64':
-                            # Compara bytes diretamente
-                            if derived_key == expected_hash_bytes:
-                                print(f"✅ Senha antiga verificada com sucesso: salt_len=base64, algo={algo}")
-                                return True
-                        else:
-                            # Converte para base64 e compara
-                            computed_hash = base64.b64encode(derived_key).decode('utf-8').rstrip('=')
-                            expected_clean = expected_hash.rstrip('=')
-                            
-                            if computed_hash == expected_clean:
-                                print(f"✅ Senha antiga verificada com sucesso: salt_len={salt_len}, algo={algo}")
-                                return True
-                                
-                            # Tenta também comparação direta sem base64
-                            if derived_key.hex() == expected_hash.lower():
-                                print(f"✅ Senha antiga verificada com sucesso (hex): salt_len={salt_len}, algo={algo}")
-                                return True
-                                
-                    except Exception as algo_error:
-                        continue
-                        
-            except Exception as approach_error:
-                continue
-        
-        print(f"❌ Nenhuma abordagem funcionou para verificar senha antiga")
-        return False
-        
-    except Exception as e:
-        print(f"❌ Erro geral ao verificar senha antiga: {e}")
-        return False
 
-def is_old_password_format(password_hash):
-    """Verifica se o hash está no formato antigo."""
-    return password_hash and password_hash.startswith("$$$rounds=")
 
 def get_password_hash(password: str) -> str:
     """Gera o hash da senha para armazenamento seguro."""
@@ -203,58 +108,21 @@ def get_current_user(
     return user
 
 def authenticate_user(db: Session, email: str, password: str):
-    """Valida as credenciais de login com migração automática de senhas."""
+    """Valida as credenciais de login usando apenas bcrypt."""
     try:
         user = db.query(Usuario).filter(Usuario.email == email).first()
         if not user:
-            print(f"❌ Usuário não encontrado: {email}")
             return False
             
         if not user.senha_hash:
-            print(f"❌ Usuário {email} não possui senha_hash definida")
             return False
-        
-        print(f"🔍 Verificando login para {email} - Hash format: {user.senha_hash[:20]}...")
-        
-        # Verifica se é formato antigo e tenta migrar
-        if is_old_password_format(user.senha_hash):
-            print(f"🔄 Detectado formato antigo de senha para {email}, tentando migração...")
-            print(f"🔍 Hash antigo completo: {user.senha_hash}")
-            
-            if verify_old_password(password, user.senha_hash):
-                # Senha correta no formato antigo, migra para bcrypt
-                print(f"✅ Senha antiga verificada com sucesso para {email}, migrando...")
-                new_hash = get_password_hash(password)
-                user.senha_hash = new_hash
-                db.commit()
-                print(f"✅ Senha migrada com sucesso para {email}")
-                return user
-            else:
-                print(f"❌ Senha incorreta no formato antigo para {email}")
-                return False
         
         # Verifica senha no formato bcrypt
-        print(f"🔍 Verificando senha bcrypt para {email}...")
-        try:
-            if not verify_password(password, user.senha_hash):
-                print(f"❌ Senha bcrypt incorreta para {email}")
-                return False
-            print(f"✅ Senha bcrypt verificada com sucesso para {email}")
-            return user
-        except Exception as bcrypt_error:
-            print(f"❌ Erro ao verificar senha bcrypt para {email}: {bcrypt_error}")
-            # Se falhar no bcrypt, pode ser que seja um formato não reconhecido
-            # Tenta como formato antigo mesmo sem o prefixo
-            print(f"🔄 Tentando verificar como formato antigo sem prefixo...")
-            if verify_old_password(password, "$$$rounds=535000$" + user.senha_hash):
-                print(f"✅ Senha verificada como formato antigo sem prefixo, migrando...")
-                new_hash = get_password_hash(password)
-                user.senha_hash = new_hash
-                db.commit()
-                print(f"✅ Senha migrada com sucesso para {email}")
-                return user
+        if not verify_password(password, user.senha_hash):
             return False
             
+        return user
+            
     except Exception as e:
-        print(f"❌ Erro geral na autenticação para {email}: {e}")
+        print(f"❌ Erro na autenticação para {email}: {e}")
         return False
