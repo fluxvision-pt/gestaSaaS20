@@ -109,7 +109,7 @@ class MeioPagamentoCreate(BaseModel):
 class MeioPagamentoResponse(BaseModel):
     id: uuid.UUID
     nome: str
-    tipo: str
+    tipo: Optional[str]
     ativo: bool
 
     class Config:
@@ -163,6 +163,11 @@ class DashboardStats(BaseModel):
     receitas_mes_anterior: Decimal
     despesas_mes_anterior: Decimal
     transacoes_recentes: List[TransacaoResponse]
+
+    class Config:
+        json_encoders = {
+            Decimal: lambda v: float(v) if v is not None else 0.0
+        }
 
 class GraficoData(BaseModel):
     labels: List[str]
