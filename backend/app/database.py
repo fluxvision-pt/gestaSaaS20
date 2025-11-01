@@ -4,8 +4,16 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+# ==========================
+# Carregar variáveis do ambiente
+# ==========================
+# Caminho absoluto para o .env.production
+env_path = Path(__file__).resolve().parent.parent / ".env.production"
+
+# Garante o carregamento mesmo se o main já tiver feito isso
+load_dotenv(dotenv_path=env_path, override=True)
 
 # Configuração das variáveis do banco de dados
 DB_USER = os.getenv("DB_USER", "postgres")

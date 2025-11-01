@@ -13,19 +13,14 @@ from pathlib import Path
 # Inicialização e Logging
 # ==============================
 
-# ==============================
-# Carregamento de variáveis de ambiente
-# ==============================
-base_path = Path(__file__).resolve().parent.parent
-env_production_path = base_path / ".env.production"
+# ==========================
+# Carregar variáveis do ambiente
+# ==========================
+# Caminho absoluto para o .env.production
+env_path = Path(__file__).resolve().parent.parent / ".env.production"
 
-# Carrega apenas configurações de produção
-if env_production_path.exists():
-    load_dotenv(dotenv_path=env_production_path)
-    print("🔧 Configuração de produção carregada")
-    print(f"🔧 ENV: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')}")
-else:
-    print("⚠️  Arquivo .env.production não encontrado")
+# Garante o carregamento mesmo se o main já tiver feito isso
+load_dotenv(dotenv_path=env_path, override=True)
 
 # Configuração básica de logs
 logging.basicConfig(level=logging.INFO)

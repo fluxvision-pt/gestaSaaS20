@@ -12,28 +12,43 @@ router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 @router.post("/login", response_model=Token)
 async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
-    user = authenticate_user(db, user_credentials.email, user_credentials.senha)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email ou senha incorretos",
-            headers={"WWW-Authenticate": "Bearer"},
+    try:
+        print(f"🔐 Tentativa de login para: {user_credentials.email}")
+        user = authenticate_user(db, user_credentials.email, user_credentials.senha)
+        if not user:
+            print(f"❌ Falha na autenticação para: {user_credentials.email}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Email ou senha incorretos",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        print(f"✅ Usuário autenticado: {user.email}")
+        
+        # Atualizar último login
+        user.ultimo_login = datetime.utcnow()
+        db.commit()
+        
+        access_token_expires = timedelta(minutes=30)
+        access_token = create_access_token(
+            data={"sub": str(user.id)}, expires_delta=access_token_expires
         )
-    
-    # Atualizar último login
-    user.ultimo_login = datetime.utcnow()
-    db.commit()
-    
-    access_token_expires = timedelta(minutes=30)
-    access_token = create_access_token(
-        data={"sub": str(user.id)}, expires_delta=access_token_expires
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": user
-    }
+        
+        print(f"✅ Token gerado com sucesso para: {user.email}")
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": user
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Erro interno no login: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno do servidor"
+        )
 
 @router.post("/register", response_model=UserResponse)
 async def register(user_data: UserRegister, db: Session = Depends(get_db)):

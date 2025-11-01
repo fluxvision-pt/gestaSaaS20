@@ -38,7 +38,7 @@ else:
 # ==========================
 # Configuração do contexto de senhas
 # ==========================
-pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 # ==========================
@@ -108,6 +108,9 @@ def authenticate_user(db: Session, email: str, password: str):
     """Valida as credenciais de login."""
     user = db.query(Usuario).filter(Usuario.email == email).first()
     if not user:
+        return False
+    if not user.senha_hash:
+        print(f"❌ Usuário {email} não possui senha_hash definida")
         return False
     if not verify_password(password, user.senha_hash):
         return False
