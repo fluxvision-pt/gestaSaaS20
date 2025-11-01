@@ -134,7 +134,10 @@ const Transacoes = () => {
     // Formatar a data para o formato esperado pelo input date (YYYY-MM-DD)
     const transacaoFormatada = {
       ...transacao,
-      data: transacao.data_transacao ? new Date(transacao.data_transacao).toISOString().split('T')[0] : ''
+      data: transacao.data_transacao ? new Date(transacao.data_transacao).toISOString().split('T')[0] : '',
+      categoria_id: transacao.categoria?.id || transacao.categoria_id || '',
+      plataforma_id: transacao.plataforma?.id || transacao.plataforma_id || '',
+      meio_pagamento_id: transacao.meio_pagamento?.id || transacao.meio_pagamento_id || ''
     };
     
     reset(transacaoFormatada);
@@ -162,11 +165,11 @@ const Transacoes = () => {
 
     // Se há filtros de data, verificar se a transação tem data válida
     if (dataInicio || dataFim) {
-      if (!transacao.data) {
+      if (!transacao.data_transacao) {
         return false;
       }
       
-      const dataTransacao = new Date(transacao.data);
+      const dataTransacao = new Date(transacao.data_transacao);
       if (isNaN(dataTransacao.getTime())) {
         return false;
       }
@@ -316,7 +319,7 @@ const Transacoes = () => {
                 {transacoesFiltradas.map((transacao) => (
                   <tr key={transacao.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {transacao.data ? format(new Date(transacao.data), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                      {transacao.data_transacao ? format(new Date(transacao.data_transacao), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
