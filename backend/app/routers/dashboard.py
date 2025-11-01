@@ -18,6 +18,10 @@ async def get_dashboard_stats(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # Definir mês e ano atual primeiro
+    mes_atual = datetime.now().month
+    ano_atual = datetime.now().year
+    
     # Criar query base para receitas
     receitas_query = db.query(func.sum(Transacao.valor)).filter(
         Transacao.usuario_id == current_user.id,
@@ -71,10 +75,6 @@ async def get_dashboard_stats(
     
     # Calcular valor por KM
     valor_por_km = receitas_total / km_total_calculo if km_total_calculo > 0 else Decimal('0')
-    
-    # Receitas e despesas do mês atual
-    mes_atual = datetime.now().month
-    ano_atual = datetime.now().year
     
     receitas_mes = db.query(func.sum(Transacao.valor)).filter(
         Transacao.usuario_id == current_user.id,
@@ -239,12 +239,9 @@ async def get_resumo_plataformas(
         func.sum(Transacao.valor).label('total_receita'),
         func.sum(Transacao.km_percorridos).label('total_km'),
         func.count(Transacao.id).label('total_corridas')
-    ).join(
-        Transacao, 
-        (Plataforma.id == Transacao.plataforma_id) & 
-        (Transacao.usuario_id == current_user.id) & 
-        (Transacao.tipo == 'receita')
-    ).filter(
+    ).join(Transacao).filter(
+        Transacao.usuario_id == current_user.id,
+        Transacao.tipo == 'receita',
         Plataforma.usuario_id == current_user.id
     )
     
