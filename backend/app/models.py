@@ -41,6 +41,10 @@ class Usuario(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
+    @property
+    def data_criacao(self):
+        return self.created_at
+    
     # Relacionamentos
     pais = relationship("Pais")
     transacoes = relationship("Transacao", back_populates="usuario")

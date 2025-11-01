@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 
 // Configuração da URL da API baseada no ambiente
 const API_BASE_URL = import.meta.env.MODE === 'development' 
-  ? 'http://localhost:8000/api' 
+  ? 'http://localhost:8000' 
   : (import.meta.env.VITE_API_URL || 'https://rotas.fluxvision.cloud/api');
 
 

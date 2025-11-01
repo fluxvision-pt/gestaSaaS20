@@ -20,17 +20,17 @@ class UserResponse(BaseModel):
     id: uuid.UUID
     nome: Optional[str]
     email: Optional[str]
-    telefone: Optional[str]
-    pais_id: Optional[int]
-    bio: Optional[str]
-    cidade: Optional[str]
-    idioma: Optional[str]
-    verificado: bool
+    telefone: Optional[str] = None
+    pais_id: Optional[int] = None
+    bio: Optional[str] = None
+    cidade: Optional[str] = None
+    idioma: Optional[str] = None
+    verificado: Optional[bool] = True
     ativo: bool
-    moeda_padrao: str
-    simbolo_moeda: str
-    ultimo_login: Optional[datetime]
-    created_at: datetime
+    moeda_padrao: Optional[str] = "BRL"
+    simbolo_moeda: Optional[str] = "R$"
+    ultimo_login: Optional[datetime] = None
+    data_criacao: Optional[datetime] = None
 
     class Config:
         from_attributes = True
