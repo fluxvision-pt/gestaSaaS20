@@ -160,6 +160,8 @@ class DashboardStats(BaseModel):
     valor_por_km: Decimal
     receitas_mes_atual: Decimal
     despesas_mes_atual: Decimal
+    receitas_mes_anterior: Decimal
+    despesas_mes_anterior: Decimal
     transacoes_recentes: List[TransacaoResponse]
 
 class GraficoData(BaseModel):
