@@ -39,7 +39,12 @@ else:
 # ==========================
 # Configuração do contexto de senhas
 # ==========================
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt"], 
+    deprecated="auto",
+    bcrypt__rounds=12,
+    bcrypt__ident="2b"
+)
 security = HTTPBearer()
 
 # ==========================
