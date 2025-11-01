@@ -65,8 +65,9 @@ async def get_dashboard_stats(
     km_total_para_calculo = km_query_total.scalar() or Decimal('0')
     
     # KM do mês atual (para exibição no card)
-    mes_atual = datetime.now().month
-    ano_atual = datetime.now().year
+    data_atual = datetime.now()
+    mes_atual = data_atual.month
+    ano_atual = data_atual.year
     
     km_mes_atual = db.query(func.sum(Transacao.km_percorridos)).filter(
         Transacao.usuario_id == current_user.id,
