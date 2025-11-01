@@ -101,10 +101,10 @@ Configure as seguintes variáveis no painel:
 - `DATABASE_URL`: postgresql://gestasaas:sua_senha_segura@database:5432/gestasaas_db
 - `SECRET_KEY`: sua_chave_secreta_muito_segura
 - `ENVIRONMENT`: production
-- `CORS_ORIGINS`: https://app.fluxvision.cloud,https://rotas.fluxvision.cloud
+- `CORS_ORIGINS`: https://app.fluxvision.cloud,https://api.fluxvision.cloud
 
 **Frontend:**
-- `VITE_API_URL`: https://rotas.fluxvision.cloud/api
+- `REACT_APP_API_URL`: https://api.fluxvision.cloud/api
 - `REACT_APP_ENVIRONMENT`: production
 
 ### 4. Deploy

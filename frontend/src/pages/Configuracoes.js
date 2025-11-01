@@ -56,28 +56,10 @@ const Configuracoes = () => {
 
   const salvarConfiguracoes = async (data) => {
     try {
-      // Tratar campos numéricos vazios - converter strings vazias para null
-      const configData = { ...data };
-      
-      // Campos financeiros que podem ser opcionais
-      const camposNumericos = [
-        'meta_mensal_receita',
-        'meta_mensal_despesa', 
-        'limite_gasto_diario',
-        'preco_combustivel'
-      ];
-      
-      camposNumericos.forEach(campo => {
-        if (configData[campo] === '' || configData[campo] === undefined) {
-          configData[campo] = null;
-        }
-      });
-      
-      await configuracaoService.atualizarConfiguracoes(configData);
+      await configuracaoService.atualizarConfiguracoes(data);
       toast.success('Configurações salvas com sucesso!');
-      setConfiguracoes(configData);
+      setConfiguracoes(data);
     } catch (error) {
-      console.error('Erro ao salvar configurações:', error);
       toast.error('Erro ao salvar configurações');
     }
   };

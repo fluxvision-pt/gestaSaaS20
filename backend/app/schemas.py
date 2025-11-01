@@ -20,17 +20,17 @@ class UserResponse(BaseModel):
     id: uuid.UUID
     nome: Optional[str]
     email: Optional[str]
-    telefone: Optional[str] = None
-    pais_id: Optional[int] = None
-    bio: Optional[str] = None
-    cidade: Optional[str] = None
-    idioma: Optional[str] = None
-    verificado: Optional[bool] = True
+    telefone: Optional[str]
+    pais_id: Optional[int]
+    bio: Optional[str]
+    cidade: Optional[str]
+    idioma: Optional[str]
+    verificado: bool
     ativo: bool
-    moeda_padrao: Optional[str] = "BRL"
-    simbolo_moeda: Optional[str] = "R$"
-    ultimo_login: Optional[datetime] = None
-    created_at: Optional[datetime] = None
+    moeda_padrao: str
+    simbolo_moeda: str
+    ultimo_login: Optional[datetime]
+    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -87,7 +87,6 @@ class PlataformaCreate(BaseModel):
     tipo: str  # 'delivery', 'driver', 'outro'
     cor: Optional[str] = '#28a745'
     comissao_percentual: Optional[Decimal] = 0
-    ativo: Optional[bool] = True
 
 class PlataformaResponse(BaseModel):
     id: uuid.UUID
@@ -104,12 +103,11 @@ class PlataformaResponse(BaseModel):
 class MeioPagamentoCreate(BaseModel):
     nome: str
     tipo: Optional[str] = None
-    ativo: Optional[bool] = True
 
 class MeioPagamentoResponse(BaseModel):
     id: uuid.UUID
     nome: str
-    tipo: Optional[str]
+    tipo: str
     ativo: bool
 
     class Config:
@@ -160,14 +158,7 @@ class DashboardStats(BaseModel):
     valor_por_km: Decimal
     receitas_mes_atual: Decimal
     despesas_mes_atual: Decimal
-    receitas_mes_anterior: Decimal
-    despesas_mes_anterior: Decimal
     transacoes_recentes: List[TransacaoResponse]
-
-    class Config:
-        json_encoders = {
-            Decimal: lambda v: float(v) if v is not None else 0.0
-        }
 
 class GraficoData(BaseModel):
     labels: List[str]

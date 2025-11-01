@@ -9,10 +9,6 @@ import { useCurrencyFormatter } from '../utils/currency';
 
 const Transacoes = () => {
   const [transacoes, setTransacoes] = useState([]);
-  // Estados para filtros (todos os itens)
-  const [categoriasFiltro, setCategoriasFiltro] = useState([]);
-  const [plataformasFiltro, setPlataformasFiltro] = useState([]);
-  // Estados para formulários (apenas ativos)
   const [categorias, setCategorias] = useState([]);
   const [plataformas, setPlataformas] = useState([]);
   const [meiosPagamento, setMeiosPagamento] = useState([]);
@@ -46,30 +42,17 @@ const Transacoes = () => {
   const carregarDados = async () => {
     try {
       setLoading(true);
-      const [
-        transacoesData, 
-        categoriasAtivasData, 
-        plataformasAtivasData, 
-        meiosPagamentoAtivasData,
-        categoriasTodasData,
-        plataformasTodasData
-      ] = await Promise.all([
+      const [transacoesData, categoriasData, plataformasData, meiosPagamentoData] = await Promise.all([
         transacaoService.listar(),
-        configuracaoService.listarCategoriasAtivas(),
-        configuracaoService.listarPlataformasAtivas(),
-        configuracaoService.listarMeiosPagamentoAtivos(),
         configuracaoService.listarCategorias(),
-        configuracaoService.listarPlataformas()
+        configuracaoService.listarPlataformas(),
+        configuracaoService.listarMeiosPagamento()
       ]);
       
       setTransacoes(transacoesData);
-      // Para formulários (apenas ativos)
-      setCategorias(categoriasAtivasData);
-      setPlataformas(plataformasAtivasData);
-      setMeiosPagamento(meiosPagamentoAtivasData);
-      // Para filtros (todos os itens)
-      setCategoriasFiltro(categoriasTodasData);
-      setPlataformasFiltro(plataformasTodasData);
+      setCategorias(categoriasData);
+      setPlataformas(plataformasData);
+      setMeiosPagamento(meiosPagamentoData);
     } catch (error) {
       toast.error('Erro ao carregar dados');
     } finally {
@@ -79,42 +62,11 @@ const Transacoes = () => {
 
   const onSubmit = async (data) => {
     try {
-      // Transformar o campo 'data' em 'data_transacao' para compatibilidade com a API
-      const transacaoData = {
-        ...data,
-        data_transacao: data.data,
-      };
-      
-      // Remover o campo 'data' original
-      delete transacaoData.data;
-      
-      // Tratar campos UUID vazios - converter strings vazias para null
-      if (transacaoData.categoria_id === '') {
-        transacaoData.categoria_id = null;
-      }
-      if (transacaoData.plataforma_id === '') {
-        transacaoData.plataforma_id = null;
-      }
-      if (transacaoData.meio_pagamento_id === '') {
-        transacaoData.meio_pagamento_id = null;
-      }
-      
-      // Tratar campos numéricos vazios - converter strings vazias para null
-      if (transacaoData.km_percorridos === '' || transacaoData.km_percorridos === undefined) {
-        transacaoData.km_percorridos = null;
-      }
-      if (transacaoData.litros_combustivel === '' || transacaoData.litros_combustivel === undefined) {
-        transacaoData.litros_combustivel = null;
-      }
-      if (transacaoData.preco_combustivel === '' || transacaoData.preco_combustivel === undefined) {
-        transacaoData.preco_combustivel = null;
-      }
-      
       if (editingTransaction) {
-        await transacaoService.atualizar(editingTransaction.id, transacaoData);
+        await transacaoService.atualizar(editingTransaction.id, data);
         toast.success('Transação atualizada com sucesso!');
       } else {
-        await transacaoService.criar(transacaoData);
+        await transacaoService.criar(data);
         toast.success('Transação criada com sucesso!');
       }
       
@@ -123,7 +75,6 @@ const Transacoes = () => {
       reset();
       carregarDados();
     } catch (error) {
-      console.error('Erro detalhado:', error);
       toast.error('Erro ao salvar transação');
     }
   };
@@ -134,10 +85,7 @@ const Transacoes = () => {
     // Formatar a data para o formato esperado pelo input date (YYYY-MM-DD)
     const transacaoFormatada = {
       ...transacao,
-      data: transacao.data_transacao ? new Date(transacao.data_transacao).toISOString().split('T')[0] : '',
-      categoria_id: transacao.categoria?.id || transacao.categoria_id || '',
-      plataforma_id: transacao.plataforma?.id || transacao.plataforma_id || '',
-      meio_pagamento_id: transacao.meio_pagamento?.id || transacao.meio_pagamento_id || ''
+      data: transacao.data ? new Date(transacao.data).toISOString().split('T')[0] : ''
     };
     
     reset(transacaoFormatada);
@@ -165,11 +113,11 @@ const Transacoes = () => {
 
     // Se há filtros de data, verificar se a transação tem data válida
     if (dataInicio || dataFim) {
-      if (!transacao.data_transacao) {
+      if (!transacao.data) {
         return false;
       }
       
-      const dataTransacao = new Date(transacao.data_transacao);
+      const dataTransacao = new Date(transacao.data);
       if (isNaN(dataTransacao.getTime())) {
         return false;
       }
@@ -246,9 +194,9 @@ const Transacoes = () => {
               className="input"
             >
               <option value="">Todas as categorias</option>
-              {categoriasFiltro.map(categoria => (
+              {categorias.map(categoria => (
                 <option key={categoria.id} value={categoria.id}>
-                  {categoria.nome} {!categoria.ativo && '(Inativo)'}
+                  {categoria.nome}
                 </option>
               ))}
             </select>
@@ -259,9 +207,9 @@ const Transacoes = () => {
               className="input"
             >
               <option value="">Todas as plataformas</option>
-              {plataformasFiltro.map(plataforma => (
+              {plataformas.map(plataforma => (
                 <option key={plataforma.id} value={plataforma.id}>
-                  {plataforma.nome} {!plataforma.ativo && '(Inativo)'}
+                  {plataforma.nome}
                 </option>
               ))}
             </select>
@@ -319,7 +267,7 @@ const Transacoes = () => {
                 {transacoesFiltradas.map((transacao) => (
                   <tr key={transacao.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {transacao.data_transacao ? format(new Date(transacao.data_transacao), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                      {transacao.data ? format(new Date(transacao.data), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

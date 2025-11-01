@@ -68,23 +68,6 @@ const Dashboard = () => {
     return new Intl.NumberFormat('pt-BR').format(value || 0);
   };
 
-  const calcularVariacao = (atual, anterior) => {
-    if (!anterior || anterior === 0) {
-      return atual > 0 ? 100 : 0;
-    }
-    return ((atual - anterior) / anterior) * 100;
-  };
-
-  const formatarVariacao = (variacao) => {
-    const isPositive = variacao >= 0;
-    return {
-      valor: Math.abs(variacao).toFixed(1),
-      isPositive,
-      icon: isPositive ? TrendingUp : TrendingDown,
-      color: isPositive ? 'text-green-600' : 'text-red-600'
-    };
-  };
-
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
 
   if (loading) {
@@ -130,24 +113,11 @@ const Dashboard = () => {
                 <TrendingUp className="h-6 w-6 text-green-600" />
               </div>
             </div>
-            <div className="mt-4 flex items-center justify-between text-sm">
-              <div className="flex items-center">
-                <span className="text-green-600 font-medium">
-                  {formatCurrency(stats?.receitas_mes_atual)}
-                </span>
-                <span className="text-slate-500 ml-1">este mês</span>
-              </div>
-              {stats?.receitas_mes_anterior !== undefined && (() => {
-                const variacao = calcularVariacao(stats.receitas_mes_atual, stats.receitas_mes_anterior);
-                const variacaoFormatada = formatarVariacao(variacao);
-                const IconeVariacao = variacaoFormatada.icon;
-                return (
-                  <div className={`flex items-center ${variacaoFormatada.color}`}>
-                    <IconeVariacao className="h-3 w-3 mr-1" />
-                    <span className="text-xs font-medium">{variacaoFormatada.valor}%</span>
-                  </div>
-                );
-              })()}
+            <div className="mt-4 flex items-center text-sm">
+              <span className="text-green-600 font-medium">
+                {formatCurrency(stats?.receitas_mes_atual)}
+              </span>
+              <span className="text-slate-500 ml-1">este mês</span>
             </div>
           </div>
         </div>
@@ -165,24 +135,11 @@ const Dashboard = () => {
                 <TrendingDown className="h-6 w-6 text-red-600" />
               </div>
             </div>
-            <div className="mt-4 flex items-center justify-between text-sm">
-              <div className="flex items-center">
-                <span className="text-red-600 font-medium">
-                  {formatCurrency(stats?.despesas_mes_atual)}
-                </span>
-                <span className="text-slate-500 ml-1">este mês</span>
-              </div>
-              {stats?.despesas_mes_anterior !== undefined && (() => {
-                const variacao = calcularVariacao(stats.despesas_mes_atual, stats.despesas_mes_anterior);
-                const variacaoFormatada = formatarVariacao(variacao);
-                const IconeVariacao = variacaoFormatada.icon;
-                return (
-                  <div className={`flex items-center ${variacaoFormatada.color}`}>
-                    <IconeVariacao className="h-3 w-3 mr-1" />
-                    <span className="text-xs font-medium">{variacaoFormatada.valor}%</span>
-                  </div>
-                );
-              })()}
+            <div className="mt-4 flex items-center text-sm">
+              <span className="text-red-600 font-medium">
+                {formatCurrency(stats?.despesas_mes_atual)}
+              </span>
+              <span className="text-slate-500 ml-1">este mês</span>
             </div>
           </div>
         </div>
@@ -320,7 +277,7 @@ const Dashboard = () => {
                     <span className="font-medium">{formatNumber(plataforma.km)} km</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-600">Dias trabalhados:</span>
+                    <span className="text-slate-600">Corridas:</span>
                     <span className="font-medium">{formatNumber(plataforma.corridas)}</span>
                   </div>
                   <div className="flex justify-between text-sm border-t border-slate-200 pt-2">

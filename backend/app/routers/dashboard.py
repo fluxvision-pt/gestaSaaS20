@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from app.database import get_db
-from app.models import Usuario, Transacao, Categoria, Plataforma, MeioPagamento
+from app.models import Usuario, Transacao, Categoria, Plataforma
 from app.schemas import DashboardStats, GraficoData
 from app.auth import get_current_user
 from datetime import datetime, date
@@ -18,10 +18,6 @@ async def get_dashboard_stats(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Definir mês e ano atual primeiro
-    mes_atual = datetime.now().month
-    ano_atual = datetime.now().year
-    
     # Criar query base para receitas
     receitas_query = db.query(func.sum(Transacao.valor)).filter(
         Transacao.usuario_id == current_user.id,
@@ -52,29 +48,26 @@ async def get_dashboard_stats(
     
     saldo = receitas_total - despesas_total
     
-    # KM do mês atual (não total geral)
-    km_mes_atual = db.query(func.sum(Transacao.km_percorridos)).filter(
+    # Criar query base para KM
+    km_query = db.query(func.sum(Transacao.km_percorridos)).filter(
         Transacao.usuario_id == current_user.id,
-        Transacao.km_percorridos.isnot(None),
-        extract('month', Transacao.data_transacao) == mes_atual,
-        extract('year', Transacao.data_transacao) == ano_atual
-    ).scalar() or Decimal('0')
+        Transacao.km_percorridos.isnot(None)
+    )
     
-    # KM total para cálculo de valor por KM (se filtros fornecidos, usar filtros; senão, usar total geral)
-    km_total_calculo = km_mes_atual
-    if data_inicio or data_fim:
-        km_query = db.query(func.sum(Transacao.km_percorridos)).filter(
-            Transacao.usuario_id == current_user.id,
-            Transacao.km_percorridos.isnot(None)
-        )
-        if data_inicio:
-            km_query = km_query.filter(Transacao.data_transacao >= data_inicio)
-        if data_fim:
-            km_query = km_query.filter(Transacao.data_transacao <= data_fim)
-        km_total_calculo = km_query.scalar() or Decimal('0')
+    # Aplicar filtros de data se fornecidos
+    if data_inicio:
+        km_query = km_query.filter(Transacao.data_transacao >= data_inicio)
+    if data_fim:
+        km_query = km_query.filter(Transacao.data_transacao <= data_fim)
+    
+    km_total = km_query.scalar() or Decimal('0')
     
     # Calcular valor por KM
-    valor_por_km = receitas_total / km_total_calculo if km_total_calculo > 0 else Decimal('0')
+    valor_por_km = receitas_total / km_total if km_total > 0 else Decimal('0')
+    
+    # Receitas e despesas do mês atual
+    mes_atual = datetime.now().month
+    ano_atual = datetime.now().year
     
     receitas_mes = db.query(func.sum(Transacao.valor)).filter(
         Transacao.usuario_id == current_user.id,
@@ -90,30 +83,8 @@ async def get_dashboard_stats(
         extract('year', Transacao.data_transacao) == ano_atual
     ).scalar() or Decimal('0')
     
-    # Calcular mês anterior
-    mes_anterior = mes_atual - 1 if mes_atual > 1 else 12
-    ano_anterior = ano_atual if mes_atual > 1 else ano_atual - 1
-    
-    receitas_mes_anterior = db.query(func.sum(Transacao.valor)).filter(
-        Transacao.usuario_id == current_user.id,
-        Transacao.tipo == 'receita',
-        extract('month', Transacao.data_transacao) == mes_anterior,
-        extract('year', Transacao.data_transacao) == ano_anterior
-    ).scalar() or Decimal('0')
-    
-    despesas_mes_anterior = db.query(func.sum(Transacao.valor)).filter(
-        Transacao.usuario_id == current_user.id,
-        Transacao.tipo == 'despesa',
-        extract('month', Transacao.data_transacao) == mes_anterior,
-        extract('year', Transacao.data_transacao) == ano_anterior
-    ).scalar() or Decimal('0')
-    
-    # Transações recentes (últimas 5) com relacionamentos carregados
-    transacoes_recentes = db.query(Transacao).options(
-        joinedload(Transacao.categoria),
-        joinedload(Transacao.plataforma),
-        joinedload(Transacao.meio_pagamento)
-    ).filter(
+    # Transações recentes (últimas 5)
+    transacoes_recentes = db.query(Transacao).filter(
         Transacao.usuario_id == current_user.id
     ).order_by(Transacao.created_at.desc()).limit(5).all()
     
@@ -121,12 +92,10 @@ async def get_dashboard_stats(
         total_receitas=receitas_total,
         total_despesas=despesas_total,
         saldo=saldo,
-        total_km=km_mes_atual,
+        total_km=km_total,
         valor_por_km=valor_por_km,
         receitas_mes_atual=receitas_mes,
         despesas_mes_atual=despesas_mes,
-        receitas_mes_anterior=receitas_mes_anterior,
-        despesas_mes_anterior=despesas_mes_anterior,
         transacoes_recentes=transacoes_recentes
     )
 
@@ -243,9 +212,12 @@ async def get_resumo_plataformas(
         func.sum(Transacao.valor).label('total_receita'),
         func.sum(Transacao.km_percorridos).label('total_km'),
         func.count(Transacao.id).label('total_corridas')
-    ).join(Transacao).filter(
-        Transacao.usuario_id == current_user.id,
-        Transacao.tipo == 'receita',
+    ).join(
+        Transacao, 
+        (Plataforma.id == Transacao.plataforma_id) & 
+        (Transacao.usuario_id == current_user.id) & 
+        (Transacao.tipo == 'receita')
+    ).filter(
         Plataforma.usuario_id == current_user.id
     )
     

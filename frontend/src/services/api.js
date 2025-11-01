@@ -1,10 +1,8 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// Configuração da URL da API baseada no ambiente
-const API_BASE_URL = import.meta.env.MODE === 'development' 
-  ? 'http://localhost:8000' 
-  : 'https://rotas.fluxvision.cloud/api';
+// Usar sempre a URL de produção
+const API_BASE_URL = 'https://rotas.fluxvision.cloud/api';
 
 
 
@@ -153,11 +151,6 @@ export const configService = {
     return response.data;
   },
   
-  listarCategoriasAtivas: async () => {
-    const response = await api.get('/configuracoes/categorias/ativas');
-    return response.data;
-  },
-  
   criarCategoria: async (categoria) => {
     const response = await api.post('/configuracoes/categorias', categoria);
     return response.data;
@@ -179,11 +172,6 @@ export const configService = {
     return response.data;
   },
   
-  listarPlataformasAtivas: async () => {
-    const response = await api.get('/configuracoes/plataformas/ativas');
-    return response.data;
-  },
-  
   criarPlataforma: async (plataforma) => {
     const response = await api.post('/configuracoes/plataformas', plataforma);
     return response.data;
@@ -202,11 +190,6 @@ export const configService = {
   // Meios de pagamento
   listarMeiosPagamento: async () => {
     const response = await api.get('/configuracoes/meios-pagamento');
-    return response.data;
-  },
-  
-  listarMeiosPagamentoAtivos: async () => {
-    const response = await api.get('/configuracoes/meios-pagamento/ativos');
     return response.data;
   },
   

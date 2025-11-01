@@ -13,14 +13,13 @@ from pathlib import Path
 # Inicialização e Logging
 # ==============================
 
-# ==========================
-# Carregar variáveis do ambiente
-# ==========================
-# Caminho absoluto para o .env.production
+# 🔧 Carrega o arquivo .env.production de forma absoluta e segura
 env_path = Path(__file__).resolve().parent.parent / ".env.production"
-
-# Garante o carregamento mesmo se o main já tiver feito isso
-load_dotenv(dotenv_path=env_path, override=True)
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+    print(f"🔧 ENV carregado com sucesso: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')}")
+else:
+    print(f"⚠️  Arquivo .env.production não encontrado em: {env_path}")
 
 # Configuração básica de logs
 logging.basicConfig(level=logging.INFO)
@@ -65,12 +64,14 @@ async def shutdown_event_handler():
 # Configuração de CORS
 # ==============================
 cors_origins_str = os.getenv(
-    "CORS_ORIGINS", 
+    "CORS_ORIGINS",
     "https://app.fluxvision.cloud,https://rotas.fluxvision.cloud"
 )
 cors_origins = [o.strip() for o in cors_origins_str.split(",") if o.strip()]
 
 environment = os.getenv("ENVIRONMENT", "production")
+if environment == "development":
+    cors_origins = ["*"]
 
 print(f"Environment: {environment}")
 print(f"CORS Origins: {cors_origins}")
@@ -85,20 +86,38 @@ app.add_middleware(
 )
 
 # ==============================
-# Headers de segurança
+# Middleware customizado para CORS dinâmico
 # ==============================
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-    
-    # Headers de segurança para evitar Mixed Content
-    response.headers["Content-Security-Policy"] = "upgrade-insecure-requests"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    
-    return response
+class CORSOptionsMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Trata manualmente requisições OPTIONS (pré-flight)
+        if request.method == "OPTIONS":
+            response = Response()
+            origin = request.headers.get("Origin", "*")
+            req_headers = request.headers.get("Access-Control-Request-Headers", "*")
+
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            response.headers["Access-Control-Allow-Headers"] = req_headers
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            return response
+
+        # Adiciona o cabeçalho em todas as respostas
+        response = await call_next(request)
+        origin = request.headers.get("Origin", "*")
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Vary"] = "Origin"
+        
+        # Headers de segurança para evitar Mixed Content
+        response.headers["Content-Security-Policy"] = "upgrade-insecure-requests"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        
+        return response
+
+app.add_middleware(CORSOptionsMiddleware)
 
 # ==============================
 # Rotas da aplicação
@@ -107,7 +126,6 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(transacoes.router, prefix="/api")
 app.include_router(configuracoes.router, prefix="/api")
-
 
 # ==============================
 # Rotas básicas
@@ -127,7 +145,7 @@ async def health_check():
             "status": "healthy",
             "service": "gestaSaaS API",
             "timestamp": int(time.time()),
-            "environment": os.getenv("ENVIRONMENT", "production"),
+            "environment": os.getenv("ENVIRONMENT", "development"),
             "version": "1.0.0"
         }
     except Exception as e:
