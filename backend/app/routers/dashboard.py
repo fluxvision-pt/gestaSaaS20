@@ -227,7 +227,7 @@ async def get_resumo_plataformas(
     if data_fim:
         plataformas_query = plataformas_query.filter(Transacao.data_transacao <= data_fim)
     
-    plataformas_stats = plataformas_query.group_by(Plataforma.nome, Plataforma.cor).all()
+    plataformas_stats = plataformas_query.group_by(Plataforma.nome, Plataforma.cor).order_by(Plataforma.nome).all()
     
     # Calcular total geral para participação percentual
     total_receita_geral = sum(float(p.total_receita or 0) for p in plataformas_stats)
