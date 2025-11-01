@@ -49,6 +49,8 @@ const Transacoes = () => {
         configuracaoService.listarMeiosPagamento()
       ]);
       
+
+      
       setTransacoes(transacoesData);
       setCategorias(categoriasData);
       setPlataformas(plataformasData);
@@ -76,6 +78,60 @@ const Transacoes = () => {
       carregarDados();
     } catch (error) {
       toast.error('Erro ao salvar transação');
+    }
+  };
+
+  // Função para formatar data de forma segura
+  const formatarData = (data) => {
+    if (!data) return '-';
+    
+    try {
+      // Tentar diferentes formatos de data
+      let dataObj;
+      
+      if (typeof data === 'string') {
+        // Se a data está no formato ISO (YYYY-MM-DD ou YYYY-MM-DDTHH:mm:ss)
+        if (data.includes('T')) {
+          dataObj = new Date(data);
+        } else if (data.includes('-')) {
+          // Formato YYYY-MM-DD
+          dataObj = new Date(data + 'T00:00:00');
+        } else {
+          dataObj = new Date(data);
+        }
+      } else {
+        dataObj = new Date(data);
+      }
+      
+      // Verificar se a data é válida
+      if (isNaN(dataObj.getTime())) {
+        console.warn('Data inválida:', data);
+        return '-';
+      }
+      
+      return format(dataObj, 'dd/MM/yyyy', { locale: ptBR });
+    } catch (error) {
+      console.error('Erro ao formatar data:', data, error);
+      return '-';
+    }
+  };
+  
+  // Função para formatar data e hora de forma segura
+  const formatarDataHora = (data) => {
+    if (!data) return '-';
+    
+    try {
+      const dataObj = new Date(data);
+      
+      if (isNaN(dataObj.getTime())) {
+        console.warn('Data/hora inválida:', data);
+        return '-';
+      }
+      
+      return format(dataObj, 'dd/MM/yyyy HH:mm', { locale: ptBR });
+    } catch (error) {
+      console.error('Erro ao formatar data/hora:', data, error);
+      return '-';
     }
   };
 
@@ -271,13 +327,13 @@ const Transacoes = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {transacoesFiltradas.map((transacao) => (
-                  <tr key={transacao.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {transacao.data ? format(new Date(transacao.data), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {transacao.created_at ? format(new Date(transacao.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }) : '-'}
-                    </td>
+                   <tr key={transacao.id} className="hover:bg-gray-50">
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                       {formatarData(transacao.data)}
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                       {formatarDataHora(transacao.created_at)}
+                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         transacao.tipo === 'receita' 
