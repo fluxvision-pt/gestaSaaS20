@@ -16,12 +16,25 @@ from pathlib import Path
 # ==============================
 # Carregamento de variáveis de ambiente
 # ==============================
-env_path = Path(__file__).resolve().parent.parent / ".env.production"
-if env_path.exists():
+# Detecta automaticamente o ambiente baseado na existência de arquivos .env
+base_path = Path(__file__).resolve().parent.parent
+env_development_path = base_path / ".env.development"
+env_production_path = base_path / ".env.production"
+
+# Prioriza .env.development se existir, senão usa .env.production
+if env_development_path.exists():
+    env_path = env_development_path
+    print("🔧 Usando configuração de DESENVOLVIMENTO")
+elif env_production_path.exists():
+    env_path = env_production_path
+    print("🔧 Usando configuração de PRODUÇÃO")
+else:
+    print("⚠️  Nenhum arquivo .env encontrado")
+    env_path = None
+
+if env_path:
     load_dotenv(dotenv_path=env_path)
     print(f"🔧 ENV carregado com sucesso: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')}")
-else:
-    print(f"⚠️  Arquivo .env.production não encontrado em: {env_path}")
 
 # Configuração básica de logs
 logging.basicConfig(level=logging.INFO)
