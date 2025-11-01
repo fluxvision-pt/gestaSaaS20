@@ -50,26 +50,33 @@ async def get_dashboard_stats(
     
     saldo = receitas_total - despesas_total
     
-    # Criar query base para KM
-    km_query = db.query(func.sum(Transacao.km_percorridos)).filter(
+    # Criar query base para KM (todos os períodos para cálculo do valor por KM)
+    km_query_total = db.query(func.sum(Transacao.km_percorridos)).filter(
         Transacao.usuario_id == current_user.id,
         Transacao.km_percorridos.isnot(None)
     )
     
     # Aplicar filtros de data se fornecidos
     if data_inicio:
-        km_query = km_query.filter(Transacao.data_transacao >= data_inicio)
+        km_query_total = km_query_total.filter(Transacao.data_transacao >= data_inicio)
     if data_fim:
-        km_query = km_query.filter(Transacao.data_transacao <= data_fim)
+        km_query_total = km_query_total.filter(Transacao.data_transacao <= data_fim)
     
-    km_total = km_query.scalar() or Decimal('0')
+    km_total_para_calculo = km_query_total.scalar() or Decimal('0')
     
-    # Calcular valor por KM
-    valor_por_km = receitas_total / km_total if km_total > 0 else Decimal('0')
-    
-    # Receitas e despesas do mês atual
+    # KM do mês atual (para exibição no card)
     mes_atual = datetime.now().month
     ano_atual = datetime.now().year
+    
+    km_mes_atual = db.query(func.sum(Transacao.km_percorridos)).filter(
+        Transacao.usuario_id == current_user.id,
+        Transacao.km_percorridos.isnot(None),
+        extract('month', Transacao.data_transacao) == mes_atual,
+        extract('year', Transacao.data_transacao) == ano_atual
+    ).scalar() or Decimal('0')
+    
+    # Calcular valor por KM (usando KM total para cálculo mais preciso)
+    valor_por_km = receitas_total / km_total_para_calculo if km_total_para_calculo > 0 else Decimal('0')
     
     receitas_mes = db.query(
         func.sum(Transacao.valor + func.coalesce(Transacao.gorjeta, 0))
@@ -96,7 +103,7 @@ async def get_dashboard_stats(
         total_receitas=receitas_total,
         total_despesas=despesas_total,
         saldo=saldo,
-        total_km=km_total,
+        total_km=km_mes_atual,
         valor_por_km=valor_por_km,
         receitas_mes_atual=receitas_mes,
         despesas_mes_atual=despesas_mes,
