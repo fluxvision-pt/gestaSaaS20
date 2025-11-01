@@ -33,7 +33,7 @@ async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     # Cria token de acesso
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email}, 
+        data={"sub": str(user.id)}, 
         expires_delta=access_token_expires
     )
     
@@ -65,7 +65,7 @@ async def register(user_data: UserRegister, db: Session = Depends(get_db)):
             "email": user.email,
             "nome": user.nome,
             "ativo": user.ativo,
-            "data_criacao": user.data_criacao
+            "created_at": user.created_at
         }
         
     except HTTPException:
@@ -84,7 +84,7 @@ async def get_current_user_info(current_user = Depends(get_current_user)):
         "email": current_user.email,
         "nome": current_user.nome,
         "ativo": current_user.ativo,
-        "data_criacao": current_user.data_criacao
+        "created_at": current_user.created_at
     }
 
 @router.post("/logout")

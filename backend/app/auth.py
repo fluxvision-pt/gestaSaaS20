@@ -10,6 +10,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
+from .database import get_db
 
 # OAuth2 scheme para autenticação
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
@@ -25,6 +26,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 def hash_password(password: str) -> str:
     """Gera hash da senha usando bcrypt."""
     return pwd_context.hash(password)
+
+def get_password_hash(password: str) -> str:
+    """Alias para hash_password para compatibilidade com rotas."""
+    return hash_password(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica se a senha está correta."""
@@ -96,18 +101,22 @@ def create_user(db: Session, email: str, password: str, nome: str):
     
     return db_user
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_user_by_id(db: Session, user_id: str):
+    """Busca usuário por ID."""
+    from .models import Usuario
+    import uuid
+    try:
+        user_uuid = uuid.UUID(user_id)
+        return db.query(Usuario).filter(Usuario.id == user_uuid).first()
+    except ValueError:
+        return None
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """Obtém o usuário atual a partir do token."""
-    # Import local para evitar circular import
-    from .database import get_db
-    
-    # Obtém uma nova sessão de banco
-    db = next(get_db())
-    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
+        user_id: str = payload.get("sub")
+        if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token inválido",
@@ -120,7 +129,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    user = get_user_by_email(db, email)
+    user = get_user_by_id(db, user_id)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
