@@ -18,23 +18,30 @@ from pathlib import Path
 # ==============================
 # Detecta automaticamente o ambiente baseado na existência de arquivos .env
 base_path = Path(__file__).resolve().parent.parent
-env_development_path = base_path / ".env.development"
 env_production_path = base_path / ".env.production"
 
-# Prioriza .env.development se existir, senão usa .env.production
-if env_development_path.exists():
-    env_path = env_development_path
-    print("🔧 Usando configuração de DESENVOLVIMENTO")
-elif env_production_path.exists():
-    env_path = env_production_path
+# Usa .env.production se existir, senão usa configurações padrão de desenvolvimento
+if env_production_path.exists():
+    load_dotenv(dotenv_path=env_production_path)
     print("🔧 Usando configuração de PRODUÇÃO")
-else:
-    print("⚠️  Nenhum arquivo .env encontrado")
-    env_path = None
-
-if env_path:
-    load_dotenv(dotenv_path=env_path)
     print(f"🔧 ENV carregado com sucesso: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')}")
+else:
+    print("🔧 Usando configuração padrão de DESENVOLVIMENTO")
+    # Configurações padrão para desenvolvimento local
+    os.environ.setdefault("DB_HOST", "localhost")
+    os.environ.setdefault("DB_PORT", "5432")
+    os.environ.setdefault("DB_USER", "postgres")
+    os.environ.setdefault("DB_PASSWORD", "postgres")
+    os.environ.setdefault("DB_NAME", "gestasaas_dev")
+    os.environ.setdefault("ENVIRONMENT", "development")
+    os.environ.setdefault("DEBUG", "true")
+    os.environ.setdefault("SECRET_KEY", "dev-secret-key-change-in-production")
+    os.environ.setdefault("ALGORITHM", "HS256")
+    os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+    os.environ.setdefault("HOST", "0.0.0.0")
+    os.environ.setdefault("PORT", "8000")
+    os.environ.setdefault("LOG_LEVEL", "info")
+    print(f"🔧 Configurações padrão aplicadas: {os.getenv('DB_HOST')} | {os.getenv('DB_NAME')}")
 
 # Configuração básica de logs
 logging.basicConfig(level=logging.INFO)
