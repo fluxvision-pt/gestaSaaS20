@@ -74,6 +74,14 @@ cors_origins = [o.strip() for o in cors_origins_str.split(",") if o.strip()]
 environment = os.getenv("ENVIRONMENT", "production")
 if environment == "development":
     cors_origins = ["*"]
+else:
+    # Adiciona localhost para desenvolvimento local mesmo em produção
+    cors_origins.extend([
+        "http://localhost:3000",
+        "http://localhost:3001", 
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001"
+    ])
 
 print(f"Environment: {environment}")
 print(f"CORS Origins: {cors_origins}")

@@ -1,8 +1,18 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// URL da API de produção
-const API_BASE_URL = 'https://rotas.fluxvision.cloud/api';
+// Configuração automática da URL da API baseada no ambiente
+const getApiBaseUrl = () => {
+  // Se estiver rodando localmente (localhost ou 127.0.0.1)
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8000/api';
+  }
+  
+  // Se estiver em produção
+  return 'https://rotas.fluxvision.cloud/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 
 
