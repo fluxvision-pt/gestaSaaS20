@@ -124,6 +124,9 @@ class TransacaoCreate(BaseModel):
     km_percorridos: Optional[Decimal] = None
     litros_combustivel: Optional[Decimal] = None
     preco_combustivel: Optional[Decimal] = None
+    gorjeta: Optional[Decimal] = None
+    saldo_em_maos: Optional[Decimal] = None
+    saldo_em_maos_recebido: Optional[bool] = False
     data_transacao: Optional[date] = None
     hora_transacao: Optional[time] = None
     localizacao: Optional[str] = None
@@ -140,6 +143,9 @@ class TransacaoResponse(BaseModel):
     km_percorridos: Optional[Decimal]
     litros_combustivel: Optional[Decimal]
     preco_combustivel: Optional[Decimal]
+    gorjeta: Optional[Decimal]
+    saldo_em_maos: Optional[Decimal]
+    saldo_em_maos_recebido: Optional[bool]
     data_transacao: date
     hora_transacao: Optional[time]
     localizacao: Optional[str]

@@ -114,6 +114,11 @@ class Transacao(Base):
     litros_combustivel = Column(Numeric(8,2))
     preco_combustivel = Column(Numeric(8,2))
     
+    # Novos campos adicionados
+    gorjeta = Column(Numeric(8,2))  # Valor da gorjeta (soma ao valor total)
+    saldo_em_maos = Column(Numeric(8,2))  # Valor em mãos (não soma ao total)
+    saldo_em_maos_recebido = Column(Boolean, default=False)  # Se o saldo em mãos foi recebido
+    
     # Dados adicionais
     data_transacao = Column(Date, nullable=False, server_default=func.current_date())
     hora_transacao = Column(Time, server_default=func.current_time())

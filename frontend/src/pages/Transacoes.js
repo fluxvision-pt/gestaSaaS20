@@ -71,6 +71,9 @@ const Transacoes = () => {
         plataforma_id: data.plataforma_id || null,
         meio_pagamento_id: data.meio_pagamento_id || null,
         km_percorridos: data.km_percorridos ? parseFloat(data.km_percorridos) : null,
+        gorjeta: data.gorjeta ? parseFloat(data.gorjeta) : null,
+        saldo_em_maos: data.saldo_em_maos ? parseFloat(data.saldo_em_maos) : null,
+        saldo_em_maos_recebido: data.saldo_em_maos_recebido || false,
         descricao: data.descricao || null,
         data_transacao: data.data || null
       };
@@ -172,10 +175,13 @@ const Transacoes = () => {
       tipo: transacao.tipo || '',
       valor: transacao.valor || '',
       data: dataFormatada,
-      categoria_id: transacao.categoria_id || '',
-      plataforma_id: transacao.plataforma_id || '',
-      meio_pagamento_id: transacao.meio_pagamento_id || '',
+      categoria_id: transacao.categoria_id ? String(transacao.categoria_id) : '',
+      plataforma_id: transacao.plataforma_id ? String(transacao.plataforma_id) : '',
+      meio_pagamento_id: transacao.meio_pagamento_id ? String(transacao.meio_pagamento_id) : '',
       km_percorridos: transacao.km_percorridos || '',
+      gorjeta: transacao.gorjeta || '',
+      saldo_em_maos: transacao.saldo_em_maos || '',
+      saldo_em_maos_recebido: transacao.saldo_em_maos_recebido || false,
       descricao: transacao.descricao || ''
     };
     
@@ -333,9 +339,6 @@ const Transacoes = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Data Cadastro
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -354,6 +357,12 @@ const Transacoes = () => {
                     KM
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Gorjeta
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Saldo em Mãos
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
@@ -361,9 +370,6 @@ const Transacoes = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {transacoesFiltradas.map((transacao) => (
                    <tr key={transacao.id} className="hover:bg-gray-50">
-                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                       {formatarData(transacao.data_transacao)}
-                     </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                        {formatarDataHora(transacao.created_at)}
                      </td>
@@ -389,6 +395,17 @@ const Transacoes = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {transacao.km_percorridos ? `${transacao.km_percorridos} km` : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transacao.gorjeta ? formatCurrency(transacao.gorjeta) : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div className="flex flex-col">
+                        <span>{transacao.saldo_em_maos ? formatCurrency(transacao.saldo_em_maos) : '-'}</span>
+                        {transacao.saldo_em_maos_recebido && (
+                          <span className="text-xs text-green-600 font-medium">✓ Recebido</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
@@ -528,19 +545,67 @@ const Transacoes = () => {
                 </div>
 
                 {tipoWatch === 'receita' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      KM Percorridos
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      {...register('km_percorridos')}
-                      className="input"
-                      placeholder="0,00"
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        KM Percorridos
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        {...register('km_percorridos')}
+                        className="input"
+                        placeholder="0,00"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Gorjeta
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        {...register('gorjeta')}
+                        className="input"
+                        placeholder="0,00"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Valor da gorjeta (será somado ao valor total)
+                      </p>
+                    </div>
+                  </>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Saldo em Mãos
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register('saldo_em_maos')}
+                    className="input"
+                    placeholder="0,00"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Valor em dinheiro (não soma ao total ganho)
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    {...register('saldo_em_maos_recebido')}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="text-sm font-medium text-gray-700">
+                    Saldo em mãos recebido
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    (marca como pago e abate do saldo devedor)
+                  </p>
+                </div>
               </div>
 
               <div>
