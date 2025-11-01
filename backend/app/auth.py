@@ -1,4 +1,3 @@
-import hmac
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -52,7 +51,33 @@ security = HTTPBearer()
 # ==========================
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica se a senha informada corresponde ao hash armazenado."""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        # Tenta verificar com bcrypt primeiro
+        if hashed_password.startswith('$2b$'):
+            return pwd_context.verify(plain_password, hashed_password)
+        
+        # Para hashes antigos, vamos criar um hash temporário para comparação
+        # Este é um fallback temporário até que todos os hashes sejam migrados
+        import hashlib
+        import base64
+        
+        # Tenta diferentes métodos de hash antigos
+        # Método 1: SHA256 + base64
+        sha256_hash = hashlib.sha256(plain_password.encode()).digest()
+        b64_hash = base64.b64encode(sha256_hash).decode()
+        if b64_hash.rstrip('=') in hashed_password:
+            return True
+            
+        # Método 2: Hash simples
+        simple_hash = hashlib.sha256(plain_password.encode()).hexdigest()
+        if simple_hash in hashed_password:
+            return True
+            
+        return False
+        
+    except Exception as e:
+        print(f"❌ Erro na verificação de senha: {e}")
+        return False
 
 
 
@@ -113,21 +138,15 @@ def get_current_user(
     return user
 
 def authenticate_user(db: Session, email: str, password: str):
-    """Valida as credenciais de login usando apenas bcrypt."""
-    try:
-        user = db.query(Usuario).filter(Usuario.email == email).first()
-        if not user:
-            return False
-            
-        if not user.senha_hash:
-            return False
-        
-        # Verifica senha no formato bcrypt
-        if not verify_password(password, user.senha_hash):
-            return False
-            
-        return user
-            
-    except Exception as e:
-        print(f"❌ Erro na autenticação para {email}: {e}")
+    """Autentica um usuário verificando email e senha."""
+    user = db.query(Usuario).filter(Usuario.email == email).first()
+    if not user:
         return False
+    
+    if not user.senha_hash:
+        return False
+    
+    if not verify_password(password, user.senha_hash):
+        return False
+    
+    return user
