@@ -64,11 +64,27 @@ const Transacoes = () => {
 
   const onSubmit = async (data) => {
     try {
+      // Processar dados para converter strings vazias em null para campos opcionais
+      const dadosProcessados = {
+        ...data,
+        categoria_id: data.categoria_id || null,
+        plataforma_id: data.plataforma_id || null,
+        meio_pagamento_id: data.meio_pagamento_id || null,
+        km_percorridos: data.km_percorridos ? parseFloat(data.km_percorridos) : null,
+        descricao: data.descricao || null,
+        data_transacao: data.data || null
+      };
+
+      // Remover o campo 'data' e usar 'data_transacao'
+      delete dadosProcessados.data;
+
+      console.log('Dados processados para envio:', dadosProcessados); // Debug
+
       if (editingTransaction) {
-        await transacaoService.atualizar(editingTransaction.id, data);
+        await transacaoService.atualizar(editingTransaction.id, dadosProcessados);
         toast.success('Transação atualizada com sucesso!');
       } else {
-        await transacaoService.criar(data);
+        await transacaoService.criar(dadosProcessados);
         toast.success('Transação criada com sucesso!');
       }
       
@@ -77,6 +93,7 @@ const Transacoes = () => {
       reset();
       carregarDados();
     } catch (error) {
+      console.error('Erro ao salvar transação:', error);
       toast.error('Erro ao salvar transação');
     }
   };
@@ -139,14 +156,30 @@ const Transacoes = () => {
     setEditingTransaction(transacao);
     
     // Formatar a data para o formato esperado pelo input date (YYYY-MM-DD)
+    let dataFormatada = '';
+    if (transacao.data_transacao) {
+      try {
+        const dataObj = new Date(transacao.data_transacao);
+        if (!isNaN(dataObj.getTime())) {
+          dataFormatada = dataObj.toISOString().split('T')[0];
+        }
+      } catch (error) {
+        console.error('Erro ao formatar data para edição:', error);
+      }
+    }
+    
     const transacaoFormatada = {
-      ...transacao,
-      data: transacao.data ? new Date(transacao.data).toISOString().split('T')[0] : '',
+      tipo: transacao.tipo || '',
+      valor: transacao.valor || '',
+      data: dataFormatada,
       categoria_id: transacao.categoria_id || '',
       plataforma_id: transacao.plataforma_id || '',
-      meio_pagamento_id: transacao.meio_pagamento_id || ''
+      meio_pagamento_id: transacao.meio_pagamento_id || '',
+      km_percorridos: transacao.km_percorridos || '',
+      descricao: transacao.descricao || ''
     };
     
+    console.log('Dados para edição:', transacaoFormatada); // Debug
     reset(transacaoFormatada);
     setShowModal(true);
   };
@@ -172,11 +205,11 @@ const Transacoes = () => {
 
     // Se há filtros de data, verificar se a transação tem data válida
     if (dataInicio || dataFim) {
-      if (!transacao.data) {
+      if (!transacao.data_transacao) {
         return false;
       }
       
-      const dataTransacao = new Date(transacao.data);
+      const dataTransacao = new Date(transacao.data_transacao);
       if (isNaN(dataTransacao.getTime())) {
         return false;
       }
@@ -329,7 +362,7 @@ const Transacoes = () => {
                 {transacoesFiltradas.map((transacao) => (
                    <tr key={transacao.id} className="hover:bg-gray-50">
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                       {formatarData(transacao.data)}
+                       {formatarData(transacao.data_transacao)}
                      </td>
                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                        {formatarDataHora(transacao.created_at)}
