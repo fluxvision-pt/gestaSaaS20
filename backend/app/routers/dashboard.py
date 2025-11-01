@@ -18,8 +18,10 @@ async def get_dashboard_stats(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Criar query base para receitas
-    receitas_query = db.query(func.sum(Transacao.valor)).filter(
+    # Criar query base para receitas (incluindo gorjeta)
+    receitas_query = db.query(
+        func.sum(Transacao.valor + func.coalesce(Transacao.gorjeta, 0))
+    ).filter(
         Transacao.usuario_id == current_user.id,
         Transacao.tipo == 'receita'
     )
@@ -69,7 +71,9 @@ async def get_dashboard_stats(
     mes_atual = datetime.now().month
     ano_atual = datetime.now().year
     
-    receitas_mes = db.query(func.sum(Transacao.valor)).filter(
+    receitas_mes = db.query(
+        func.sum(Transacao.valor + func.coalesce(Transacao.gorjeta, 0))
+    ).filter(
         Transacao.usuario_id == current_user.id,
         Transacao.tipo == 'receita',
         extract('month', Transacao.data_transacao) == mes_atual,
@@ -120,8 +124,10 @@ async def get_grafico_mensal(
         
         mes_nome = data_ref.strftime("%b/%Y")
         
-        # Receitas do mês
-        receita_mes = db.query(func.sum(Transacao.valor)).filter(
+        # Receitas do mês (incluindo gorjeta)
+        receita_mes = db.query(
+            func.sum(Transacao.valor + func.coalesce(Transacao.gorjeta, 0))
+        ).filter(
             Transacao.usuario_id == current_user.id,
             Transacao.tipo == 'receita',
             extract('month', Transacao.data_transacao) == data_ref.month,
@@ -164,11 +170,11 @@ async def get_resumo_categorias(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Receitas por categoria
+    # Receitas por categoria (incluindo gorjeta)
     receitas_query = db.query(
         Categoria.nome,
         Categoria.cor,
-        func.sum(Transacao.valor).label('total')
+        func.sum(Transacao.valor + func.coalesce(Transacao.gorjeta, 0)).label('total')
     ).join(Transacao).filter(
         Transacao.usuario_id == current_user.id,
         Transacao.tipo == 'receita'
@@ -205,11 +211,11 @@ async def get_resumo_plataformas(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Buscar apenas plataformas que têm transações associadas
+    # Buscar apenas plataformas que têm transações associadas (incluindo gorjeta)
     plataformas_query = db.query(
         Plataforma.nome,
         Plataforma.cor,
-        func.sum(Transacao.valor).label('total_receita'),
+        func.sum(Transacao.valor + func.coalesce(Transacao.gorjeta, 0)).label('total_receita'),
         func.sum(Transacao.km_percorridos).label('total_km'),
         func.count(Transacao.id).label('total_corridas')
     ).join(

@@ -175,9 +175,9 @@ const Transacoes = () => {
       tipo: transacao.tipo || '',
       valor: transacao.valor || '',
       data: dataFormatada,
-      categoria_id: transacao.categoria_id ? String(transacao.categoria_id) : '',
-      plataforma_id: transacao.plataforma_id ? String(transacao.plataforma_id) : '',
-      meio_pagamento_id: transacao.meio_pagamento_id ? String(transacao.meio_pagamento_id) : '',
+      categoria_id: transacao.categoria?.id ? String(transacao.categoria.id) : '',
+      plataforma_id: transacao.plataforma?.id ? String(transacao.plataforma.id) : '',
+      meio_pagamento_id: transacao.meio_pagamento?.id ? String(transacao.meio_pagamento.id) : '',
       km_percorridos: transacao.km_percorridos || '',
       gorjeta: transacao.gorjeta || '',
       saldo_em_maos: transacao.saldo_em_maos || '',
@@ -577,35 +577,39 @@ const Transacoes = () => {
                   </>
                 )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Saldo em Mãos
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    {...register('saldo_em_maos')}
-                    className="input"
-                    placeholder="0,00"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Valor em dinheiro (não soma ao total ganho)
-                  </p>
-                </div>
+                {tipoWatch === 'receita' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Saldo em Mãos
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        {...register('saldo_em_maos')}
+                        className="input"
+                        placeholder="0,00"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Valor em dinheiro (não soma ao total ganho)
+                      </p>
+                    </div>
 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    {...register('saldo_em_maos_recebido')}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label className="text-sm font-medium text-gray-700">
-                    Saldo em mãos recebido
-                  </label>
-                  <p className="text-xs text-gray-500">
-                    (marca como pago e abate do saldo devedor)
-                  </p>
-                </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        {...register('saldo_em_maos_recebido')}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label className="text-sm font-medium text-gray-700">
+                        Saldo em mãos recebido
+                      </label>
+                      <p className="text-xs text-gray-500">
+                        (marca como pago e abate do saldo devedor)
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div>

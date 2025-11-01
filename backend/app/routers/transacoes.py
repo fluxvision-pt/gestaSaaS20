@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc, and_, or_
 from app.database import get_db
 from app.models import Usuario, Transacao, Categoria, Plataforma, MeioPagamento
@@ -40,7 +40,11 @@ async def listar_transacoes(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Transacao).filter(Transacao.usuario_id == current_user.id)
+    query = db.query(Transacao).options(
+        joinedload(Transacao.categoria),
+        joinedload(Transacao.plataforma),
+        joinedload(Transacao.meio_pagamento)
+    ).filter(Transacao.usuario_id == current_user.id)
     
     if tipo:
         query = query.filter(Transacao.tipo == tipo)
@@ -67,7 +71,11 @@ async def obter_transacao(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    transacao = db.query(Transacao).filter(
+    transacao = db.query(Transacao).options(
+        joinedload(Transacao.categoria),
+        joinedload(Transacao.plataforma),
+        joinedload(Transacao.meio_pagamento)
+    ).filter(
         Transacao.id == transacao_id,
         Transacao.usuario_id == current_user.id
     ).first()
@@ -84,7 +92,11 @@ async def atualizar_transacao(
     current_user: Usuario = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    transacao = db.query(Transacao).filter(
+    transacao = db.query(Transacao).options(
+        joinedload(Transacao.categoria),
+        joinedload(Transacao.plataforma),
+        joinedload(Transacao.meio_pagamento)
+    ).filter(
         Transacao.id == transacao_id,
         Transacao.usuario_id == current_user.id
     ).first()
